@@ -4,11 +4,17 @@ use reqwest::Client;
 use std::marker::PhantomData;
 use utils::AuthInfo;
 
-pub mod error;
-pub mod response;
+#[cfg(feature = "auto_auth")]
+mod auto_auth;
+mod error;
+mod response;
 pub mod user;
 pub(crate) mod utils;
 
+#[cfg(feature = "auto_auth")]
+pub use auto_auth::AutoAuth;
+pub use error::Error;
+pub use response::Response;
 pub use utils::API_VERSION;
 
 pub struct Authenticated;
@@ -49,5 +55,13 @@ impl KiteConnect<AuthPending> {
             auth_info: AuthInfo::new(api_key, api_secret),
             _auth_status: PhantomData,
         }
+    }
+}
+
+impl KiteConnect<Authenticated> {
+    /// Returns a reference to the access token used by this `KiteConnect` instance.
+    #[inline]
+    pub fn access_token(&self) -> &str {
+        self.auth_info.access_token()
     }
 }

@@ -19,4 +19,4 @@ hex = "0.4"
 
 [[example]]
 name = "basic_auth"
-required-features = ["auto_auth"]
+required-features = ["auto_auth", "tokio/rt", "tokio/macros"]

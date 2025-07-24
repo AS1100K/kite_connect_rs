@@ -2,6 +2,7 @@ use reqwest::{
     Client, ClientBuilder,
     header::{HeaderMap, HeaderValue},
 };
+use serde::{Deserialize, Deserializer};
 
 pub const API_VERSION: u8 = 3;
 pub const API_VERSION_STR: &str = "3";
@@ -40,6 +41,10 @@ impl AuthInfo {
         &self.api_secret
     }
 
+    pub fn access_token(&self) -> &str {
+        &self.access_token
+    }
+
     pub fn authentication_header(&self) -> &str {
         &self.authentication_header
     }
@@ -47,7 +52,7 @@ impl AuthInfo {
 
 pub fn default_client_builder(
     authentication_header_value: Option<&str>,
-) -> Result<Client, crate::error::Error> {
+) -> Result<Client, crate::Error> {
     let mut default_headers = HeaderMap::new();
     default_headers.insert("X-Kite-Version", HeaderValue::from_static(API_VERSION_STR));
 
@@ -61,4 +66,12 @@ pub fn default_client_builder(
         .default_headers(default_headers)
         .user_agent(APP_USER_AGENT)
         .build()?)
+}
+
+pub fn deserialize_nullable_string<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let opt = Option::deserialize(deserializer)?;
+    Ok(opt.unwrap_or_default())
 }

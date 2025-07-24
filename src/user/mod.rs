@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
-use crate::{AuthPending, Authenticated, KiteConnect, error::Error, response::Response};
+use crate::{AuthPending, Authenticated, Error, KiteConnect, Response};
 
 pub mod session_token;
 

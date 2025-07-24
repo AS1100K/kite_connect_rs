@@ -11,6 +11,8 @@ pub enum Error {
     AuthenticationFailed(String),
     /// Error indicating that the provided access token could not be converted to a header value.
     InvalidAccessToken,
+    #[cfg(feature = "auto_auth")]
+    IoError(std::io::Error),
 }
 
 impl Display for Error {
@@ -21,14 +23,15 @@ impl Display for Error {
                 "Error originating from serde_json serialization or deserialization. {e}"
             ),
             Error::Reqwest(e) => write!(f, "Error originating from reqwest HTTP requests. {e}"),
-            Error::AuthenticationFailed(msg) => write!(
-                f,
-                "Error indicating that authentication has failed. {msg}"
-            ),
+            Error::AuthenticationFailed(msg) => {
+                write!(f, "Error indicating that authentication has failed. {msg}")
+            }
             Error::InvalidAccessToken => write!(
                 f,
                 "Error indicating that the provided access token could not be converted to a header value."
             ),
+            #[cfg(feature = "auto_auth")]
+            Error::IoError(e) => write!(f, "IO error: {e}"),
         }
     }
 }
@@ -50,5 +53,12 @@ impl From<reqwest::Error> for Error {
 impl From<reqwest::header::InvalidHeaderValue> for Error {
     fn from(_value: reqwest::header::InvalidHeaderValue) -> Self {
         Self::InvalidAccessToken
+    }
+}
+
+#[cfg(feature = "auto_auth")]
+impl From<std::io::Error> for Error {
+    fn from(value: std::io::Error) -> Self {
+        Self::IoError(value)
     }
 }
