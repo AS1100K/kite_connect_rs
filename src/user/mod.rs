@@ -3,6 +3,7 @@ use sha2::Digest;
 
 use crate::{AuthPending, Authenticated, Error, KiteConnect, Response};
 
+pub mod profile;
 pub mod session_token;
 
 pub const LOGIN_ENDPOINT: &str = "https://kite.zerodha.com/connect/login?v=3&api_key=";
@@ -58,6 +59,20 @@ pub enum OrderType {
     #[allow(non_camel_case_types)]
     #[serde(rename = "SL-M")]
     SL_M,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct UserMetaData {
+    pub demat_consent: DematConsent,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum DematConsent {
+    #[default]
+    Empty,
+    Consent,
+    Physical,
 }
 
 impl KiteConnect<AuthPending> {

@@ -13,6 +13,7 @@ pub struct AuthInfo {
     api_key: String,
     api_secret: String,
     access_token: String,
+    /// Value of Authorization Header at each authenticated request
     authentication_header: String,
 }
 
@@ -27,7 +28,7 @@ impl AuthInfo {
     }
 
     pub fn update_access_token(&mut self, access_token: String) {
-        let authorization_header = format!("{}:{}", self.api_key, access_token);
+        let authorization_header = format!("token {}:{access_token}", self.api_key);
 
         self.access_token = access_token;
         self.authentication_header = authorization_header;
@@ -59,7 +60,7 @@ pub fn default_client_builder(
     if let Some(authentication_header_value) = authentication_header_value {
         let mut auth_value = HeaderValue::from_str(authentication_header_value)?;
         auth_value.set_sensitive(true);
-        default_headers.insert("Authentication", auth_value);
+        default_headers.insert("Authorization", auth_value);
     }
 
     Ok(ClientBuilder::new()

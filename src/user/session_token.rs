@@ -37,24 +37,10 @@ pub struct SessionToken {
     /// User's last login time
     pub login_time: String,
     /// empty, consent or physical
-    pub meta: Meta,
+    pub meta: UserMetaData,
     /// Full URL to the user's avatar (PNG image) if there's one
     #[serde(deserialize_with = "crate::utils::deserialize_nullable_string")]
     pub avatar_url: String,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-pub struct Meta {
-    pub demat_consent: DematConsent,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(rename_all = "lowercase")]
-pub enum DematConsent {
-    #[default]
-    Empty,
-    Consent,
-    Physical,
 }
 
 impl KiteConnect<AuthPending> {
@@ -181,7 +167,7 @@ mod tests {
             public_token: "XXXXXXXX".into(),
             refresh_token: "".into(),
             login_time: "2021-01-01 16:15:14".into(),
-            meta: Meta {
+            meta: UserMetaData {
                 demat_consent: DematConsent::Physical,
             },
             avatar_url: "abc".into(),
