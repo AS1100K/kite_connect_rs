@@ -22,17 +22,20 @@ impl<T> Response<T> {
     /// # Returns
     ///
     /// - `Ok(data)` if the response is a `Success` variant.
-    /// - `Err(`[`crate::Error::KiteError`]`)` if the response is an `Error` variant.
-    pub fn into_result(self) -> Result<T, crate::Error> {
+    /// - `Err(`[`crate::KiteError`]`)` if the response is an `Error` variant.
+    pub fn into_result(self) -> Result<T, crate::KiteError> {
         self.into()
     }
 }
 
-impl<T> From<Response<T>> for Result<T, crate::Error> {
+impl<T> From<Response<T>> for Result<T, crate::KiteError> {
     fn from(value: Response<T>) -> Self {
         match value {
             Response::Success { data } => Ok(data),
-            Response::Error { message, .. } => Err(crate::Error::KiteError(message)),
+            Response::Error {
+                error_type,
+                message,
+            } => Err((error_type, message).into()),
         }
     }
 }

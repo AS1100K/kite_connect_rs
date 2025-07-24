@@ -13,7 +13,7 @@ pub(crate) mod utils;
 
 #[cfg(feature = "auto_auth")]
 pub use auto_auth::AutoAuth;
-pub use error::Error;
+pub use error::{Error, KiteError};
 pub use response::Response;
 pub use utils::API_VERSION;
 

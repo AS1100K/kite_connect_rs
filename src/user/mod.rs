@@ -113,10 +113,7 @@ impl KiteConnect<AuthPending> {
         mut self,
         request_token: &str,
     ) -> Result<KiteConnect<Authenticated>, Error> {
-        let session_token = match self.generate_session_token(request_token).await? {
-            Response::Success { data } => data,
-            Response::Error { message, .. } => return Err(Error::AuthenticationFailed(message)),
-        };
+        let session_token = self.generate_session_token(request_token).await?;
 
         self.auth_info
             .update_access_token(session_token.access_token);

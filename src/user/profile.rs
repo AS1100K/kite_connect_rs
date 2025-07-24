@@ -31,14 +31,15 @@ pub struct UserProfile {
 }
 
 impl KiteConnect<Authenticated> {
-    pub async fn get_user_profile(&self) -> Result<Response<UserProfile>, Error> {
+    pub async fn get_user_profile(&self) -> Result<UserProfile, Error> {
         Ok(self
             .client
             .get(USER_PROFILE_ENDPOINT)
             .send()
             .await?
-            .json()
-            .await?)
+            .json::<Response<_>>()
+            .await?
+            .into_result()?)
     }
 }
 

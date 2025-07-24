@@ -67,34 +67,37 @@ pub struct UtilisedFunds {
 }
 
 impl KiteConnect<Authenticated> {
-    pub async fn get_funds(&self) -> Result<Response<TotalFunds>, Error> {
+    pub async fn get_funds(&self) -> Result<TotalFunds, Error> {
         Ok(self
             .client
             .get(USER_FUNDS_ENDPOINT)
             .send()
             .await?
-            .json()
-            .await?)
+            .json::<Response<_>>()
+            .await?
+            .into_result()?)
     }
 
-    pub async fn get_equity_funds(&self) -> Result<Response<SegmentFunds>, Error> {
+    pub async fn get_equity_funds(&self) -> Result<SegmentFunds, Error> {
         Ok(self
             .client
             .get(USER_EQUITY_FUNDS_ENDPOINT)
             .send()
             .await?
-            .json()
-            .await?)
+            .json::<Response<_>>()
+            .await?
+            .into_result()?)
     }
 
-    pub async fn get_commodity_funds(&self) -> Result<Response<SegmentFunds>, Error> {
+    pub async fn get_commodity_funds(&self) -> Result<SegmentFunds, Error> {
         Ok(self
             .client
             .get(USER_COMMODITY_FUNDS_ENDPOINT)
             .send()
             .await?
-            .json()
-            .await?)
+            .json::<Response<_>>()
+            .await?
+            .into_result()?)
     }
 }
 

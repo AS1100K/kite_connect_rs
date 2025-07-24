@@ -44,10 +44,7 @@ pub struct SessionToken {
 }
 
 impl KiteConnect<AuthPending> {
-    pub async fn generate_session_token(
-        &self,
-        request_token: &str,
-    ) -> Result<Response<SessionToken>, Error> {
+    pub async fn generate_session_token(&self, request_token: &str) -> Result<SessionToken, Error> {
         #[derive(Serialize)]
         struct SessionTokenRequest<'a> {
             api_key: &'a str,
@@ -75,8 +72,9 @@ impl KiteConnect<AuthPending> {
             .form(&req)
             .send()
             .await?
-            .json()
-            .await?)
+            .json::<Response<_>>()
+            .await?
+            .into_result()?)
     }
 }
 
