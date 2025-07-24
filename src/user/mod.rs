@@ -3,6 +3,7 @@ use sha2::Digest;
 
 use crate::{AuthPending, Authenticated, Error, KiteConnect, Response};
 
+pub mod funds;
 pub mod profile;
 pub mod session_token;
 

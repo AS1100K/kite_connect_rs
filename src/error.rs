@@ -1,8 +1,10 @@
 use std::fmt::Display;
 
-/// Represents errors that can occur in this crate not including the API error. Refer [Response::Error](crate::response::Response::Error).
+/// Represents errors that can occur in this crate.
 #[derive(Debug)]
 pub enum Error {
+    /// Error originating from the Kite API.
+    KiteError(String),
     /// Error originating from serde_json serialization or deserialization.
     Serde(serde_json::Error),
     /// Error originating from reqwest HTTP requests.
@@ -18,6 +20,7 @@ pub enum Error {
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Error::KiteError(e) => write!(f, "Error originating from the Kite API. {e}"),
             Error::Serde(e) => write!(
                 f,
                 "Error originating from serde_json serialization or deserialization. {e}"

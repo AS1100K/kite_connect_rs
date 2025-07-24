@@ -16,6 +16,27 @@ pub enum Response<T> {
     Error { message: String, error_type: String },
 }
 
+impl<T> Response<T> {
+    /// Converts the `Response<T>` into a `Result<T, crate::Error>`.
+    ///
+    /// # Returns
+    ///
+    /// - `Ok(data)` if the response is a `Success` variant.
+    /// - `Err(`[`crate::Error::KiteError`]`)` if the response is an `Error` variant.
+    pub fn into_result(self) -> Result<T, crate::Error> {
+        self.into()
+    }
+}
+
+impl<T> From<Response<T>> for Result<T, crate::Error> {
+    fn from(value: Response<T>) -> Self {
+        match value {
+            Response::Success { data } => Ok(data),
+            Response::Error { message, .. } => Err(crate::Error::KiteError(message)),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
