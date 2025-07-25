@@ -9,59 +9,6 @@ pub mod session_token;
 
 pub const LOGIN_ENDPOINT: &str = "https://kite.zerodha.com/connect/login?v=3&api_key=";
 
-/// Represents an exchange
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Exchange {
-    /// BSE Futures & Options
-    BFO,
-    /// Multi Commodity Exchange
-    MCX,
-    /// National Stock Exchange
-    NSE,
-    /// Currency Derivatives Segment
-    CDS,
-    /// Bombay Stock Exchange
-    BSE,
-    /// Bombay Currency Derivatives
-    BCD,
-    /// Mutual Funds
-    MF,
-    /// NSE Futures & Options
-    NFO,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-/// Margin product types enabled for the user
-pub enum Product {
-    /// Cash and Carry
-    CNC,
-    /// Normal
-    NRML,
-    /// Margin Intraday Square-off
-    MIS,
-    /// Bracket Order
-    BO,
-    /// Cover Order
-    CO,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-/// Order types enabled for the user
-pub enum OrderType {
-    /// Market order
-    #[serde(rename = "MARKET")]
-    Market,
-    /// Limit order
-    #[serde(rename = "LIMIT")]
-    Limit,
-    /// Stop Loss order
-    SL,
-    /// Stop Loss Market order
-    #[allow(non_camel_case_types)]
-    #[serde(rename = "SL-M")]
-    SL_M,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct UserMetaData {
     pub demat_consent: DematConsent,

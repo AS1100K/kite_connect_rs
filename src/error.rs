@@ -96,8 +96,8 @@ impl Display for KiteError {
 pub enum Error {
     /// Error originating from the Kite API.
     KiteError(KiteError),
-    /// Error originating from serde_json serialization or deserialization.
-    Serde(serde_json::Error),
+    /// Error originating from serialization or deserialization.
+    Serde(Box<dyn std::error::Error>),
     /// Error originating from reqwest HTTP requests.
     Reqwest(reqwest::Error),
     /// Error indicating that the provided access token could not be converted to a header value.
@@ -112,7 +112,7 @@ impl Display for Error {
             Error::KiteError(e) => write!(f, "Error originating from the Kite API. {e}"),
             Error::Serde(e) => write!(
                 f,
-                "Error originating from serde_json serialization or deserialization. {e}"
+                "Error originating from serialization or deserialization. {e}"
             ),
             Error::Reqwest(e) => write!(f, "Error originating from reqwest HTTP requests. {e}"),
             Error::InvalidAccessToken => write!(
@@ -135,7 +135,13 @@ impl From<KiteError> for Error {
 
 impl From<serde_json::Error> for Error {
     fn from(value: serde_json::Error) -> Self {
-        Self::Serde(value)
+        Self::Serde(Box::new(value))
+    }
+}
+
+impl From<serde_urlencoded::ser::Error> for Error {
+    fn from(value: serde_urlencoded::ser::Error) -> Self {
+        Self::Serde(Box::new(value))
     }
 }
 

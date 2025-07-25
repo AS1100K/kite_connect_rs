@@ -1,4 +1,7 @@
-use crate::user::*;
+use crate::{
+    orders::{Exchange, OrderType, Product},
+    user::*,
+};
 
 pub const USER_PROFILE_ENDPOINT: &str = "https://api.kite.trade/user/profile";
 
