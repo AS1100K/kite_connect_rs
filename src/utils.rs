@@ -1,8 +1,12 @@
+use std::time::Duration;
+
 use reqwest::{
     Client, ClientBuilder,
     header::{HeaderMap, HeaderValue},
 };
 use serde::{Deserialize, Deserializer};
+
+pub const REQUEST_TIMEOUT_SECS: u64 = 1;
 
 pub const API_VERSION: u8 = 3;
 pub const API_VERSION_STR: &str = "3";
@@ -66,6 +70,7 @@ pub fn default_client_builder(
     Ok(ClientBuilder::new()
         .default_headers(default_headers)
         .user_agent(APP_USER_AGENT)
+        .timeout(Duration::from_secs(REQUEST_TIMEOUT_SECS))
         .build()?)
 }
 

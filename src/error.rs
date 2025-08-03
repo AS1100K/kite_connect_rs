@@ -96,14 +96,22 @@ impl Display for KiteError {
 pub enum Error {
     /// Error originating from the Kite API.
     KiteError(KiteError),
+
     /// Error originating from serialization or deserialization.
     Serde(Box<dyn std::error::Error>),
+
     /// Error originating from reqwest HTTP requests.
     Reqwest(reqwest::Error),
+
     /// Error indicating that the provided access token could not be converted to a header value.
     InvalidAccessToken,
+
+    /// Error related to IO
     #[cfg(feature = "auto_auth")]
     IoError(std::io::Error),
+
+    /// Error indicating that the request timed out.
+    RequestTimeOut,
 }
 
 impl Display for Error {
@@ -121,6 +129,7 @@ impl Display for Error {
             ),
             #[cfg(feature = "auto_auth")]
             Error::IoError(e) => write!(f, "IO error: {e}"),
+            Error::RequestTimeOut => write!(f, "Error indicating that the request timed out."),
         }
     }
 }
@@ -147,6 +156,10 @@ impl From<serde_urlencoded::ser::Error> for Error {
 
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
+        if value.is_timeout() {
+            return Self::RequestTimeOut;
+        }
+
         Self::Reqwest(value)
     }
 }

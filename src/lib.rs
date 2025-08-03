@@ -16,7 +16,7 @@ pub(crate) mod utils;
 pub use auto_auth::AutoAuth;
 pub use error::{Error, KiteError};
 pub use response::Response;
-pub use utils::API_VERSION;
+pub use utils::{API_VERSION, REQUEST_TIMEOUT_SECS};
 
 pub struct Authenticated;
 pub struct AuthPending;
