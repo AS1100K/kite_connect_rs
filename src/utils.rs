@@ -74,10 +74,65 @@ pub fn default_client_builder(
         .build()?)
 }
 
-pub fn deserialize_nullable_string<'de, D>(deserializer: D) -> Result<String, D::Error>
+pub(crate) fn deserialize_nullable_string<'de, D>(deserializer: D) -> Result<String, D::Error>
 where
     D: Deserializer<'de>,
 {
     let opt = Option::deserialize(deserializer)?;
     Ok(opt.unwrap_or_default())
+}
+
+pub(crate) fn deserialize_number_or_string<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::de::{self, Visitor};
+    use std::fmt;
+
+    struct NumberOrStringVisitor;
+
+    impl<'de> Visitor<'de> for NumberOrStringVisitor {
+        type Value = String;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("a string or a number")
+        }
+
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(value.to_owned())
+        }
+
+        fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(value)
+        }
+
+        fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(value.to_string())
+        }
+
+        fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(value.to_string())
+        }
+
+        fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            Ok(value.to_string())
+        }
+    }
+
+    deserializer.deserialize_any(NumberOrStringVisitor)
 }

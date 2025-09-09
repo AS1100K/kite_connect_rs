@@ -16,6 +16,8 @@ pub const CANCEL_CO_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/co/";
 pub const CANCEL_ICEBERG_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/iceberg/";
 pub const CANCEL_AUCTION_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/auction/";
 
+pub const GET_ORDERS_ENDPOINT: &str = "https://api.kite.trade/orders";
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Variety {
@@ -161,6 +163,91 @@ pub struct ModifyCoverOrderRequest {
     pub trigger_price: Option<f64>,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum OrderStatus {
+    Open,
+    Cancelled,
+    Rejected,
+    Complete,
+    #[serde(untagged)]
+    Other(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Order {
+    /// Unique order ID
+    pub order_id: String,
+    /// Order ID of the parent order (only applicable in case of multi-legged orders like CO)
+    pub parent_order_id: Option<String>,
+    /// Exchange generated order ID. Orders that don't reach the exchange have null IDs
+    pub exchange_order_id: Option<String>,
+    /// Indicate that the order has been modified since placement by the user
+    pub modified: bool,
+    /// ID of the user that placed the order. This may different from the user's ID for orders
+    /// placed outside of Kite, for instance, by dealers at the brokerage using dealer terminals
+    pub placed_by: String,
+    /// Order variety (regular, amo, co etc.)
+    pub variety: Variety,
+    /// Current status of the order. Most common values or COMPLETE, REJECTED, CANCELLED, and OPEN.
+    /// There may be other values as well.
+    pub status: OrderStatus,
+    /// Exchange tradingsymbol of the instrument
+    #[serde(rename = "tradingsymbol")]
+    pub trading_symbol: String,
+    /// Exchange
+    pub exchange: Exchange,
+    /// The numerical identifier issued by the exchange representing the instrument. Used for
+    /// subscribing to live market data over WebSocket
+    #[serde(deserialize_with = "crate::utils::deserialize_number_or_string")]
+    pub instrument_token: String,
+    /// BUY or SELL
+    pub transaction_type: TransactionType,
+    /// Order type (MARKET, LIMIT etc.)
+    pub order_type: OrderType,
+    /// Margin product to use for the order (margins are blocked based on this)
+    pub product: Product,
+    /// Order validity
+    pub validity: Validity,
+    /// Price at which the order was placed (LIMIT orders)
+    pub price: Option<f64>,
+    /// Quantity ordered
+    pub quantity: u32,
+    /// Trigger price (for SL, SL-M, CO orders)
+    pub trigger_price: Option<f64>,
+    /// Average price at which the order was executed (only for COMPLETE orders)
+    pub average_price: Option<f64>,
+    /// Pending quantity to be filled
+    pub pending_quantity: u32,
+    /// Quantity that's been filled
+    pub filled_quantity: u32,
+    /// Quantity to be disclosed (may be different from actual quantity) to the public exchange
+    /// orderbook. Only for equities
+    pub disclosed_quantity: Option<u32>,
+    /// Timestamp at which the order was registered by the API
+    pub order_timestamp: String,
+    /// Timestamp at which the order was registered by the exchange. Orders that don't reach
+    /// the exchange have null timestamps
+    pub exchange_timestamp: Option<String>,
+    /// Timestamp at which an order's state changed at the exchange
+    pub exchange_update_timestamp: Option<String>,
+    /// Textual description of the order's status. Failed orders come with human readable explanation
+    pub status_message: Option<String>,
+    /// Raw textual description of the failed order's status, as received from the OMS
+    pub status_message_raw: Option<String>,
+    /// Quantity that's cancelled
+    pub cancelled_quantity: u32,
+    /// A unique identifier for a particular auction
+    pub auction_number: Option<String>,
+    /// An optional tag to apply to an order to identify it (alphanumeric, max 20 chars)
+    pub tag: Option<String>,
+    /// Unusable request id to avoid order duplication
+    pub guid: String,
+    /// Map of arbitrary fields that the system may attach to an order.
+    #[serde(flatten)]
+    pub meta: Option<serde_json::Value>,
+}
+
 #[derive(Deserialize)]
 struct Data {
     order_id: String,
@@ -255,6 +342,17 @@ impl KiteConnect<Authenticated> {
             .into_result()?;
         Ok(())
     }
+
+    pub async fn get_orders(&self) -> Result<Order, Error> {
+        Ok(self
+            .client
+            .get(GET_ORDERS_ENDPOINT)
+            .send()
+            .await?
+            .json::<Response<_>>()
+            .await?
+            .into_result()?)
+    }
 }
 
 const fn place_order_endpoint_url_impl(variety: &Variety) -> &'static str {
@@ -304,6 +402,165 @@ mod tests {
 
         let value = serde_urlencoded::to_string(order_req)?;
         assert_eq!(value, "tradingsymbol=COROMANDEL&exchange=NSE&transaction_type=BUY&order_type=MARKET&quantity=1&product=CNC&validity=TTL&validity_ttl=2&tag=Nobelium".to_string());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_orders() -> Result<(), Box<dyn std::error::Error>> {
+        let json = r#"{
+          "status": "success",
+          "data": [
+            {
+              "placed_by": "XXXXXX",
+              "order_id": "100000000000000",
+              "exchange_order_id": "200000000000000",
+              "parent_order_id": null,
+              "status": "CANCELLED",
+              "status_message": null,
+              "status_message_raw": null,
+              "order_timestamp": "2021-05-31 09:18:57",
+              "exchange_update_timestamp": "2021-05-31 09:18:58",
+              "exchange_timestamp": "2021-05-31 09:15:38",
+              "variety": "regular",
+              "modified": false,
+              "exchange": "CDS",
+              "tradingsymbol": "USDINR21JUNFUT",
+              "instrument_token": 412675,
+              "order_type": "LIMIT",
+              "transaction_type": "BUY",
+              "validity": "DAY",
+              "product": "NRML",
+              "quantity": 1,
+              "disclosed_quantity": 0,
+              "price": 72,
+              "trigger_price": 0,
+              "average_price": 0,
+              "filled_quantity": 0,
+              "pending_quantity": 1,
+              "cancelled_quantity": 1,
+              "market_protection": 0,
+              "meta": {},
+              "tag": null,
+              "guid": "XXXXX"
+            },
+            {
+              "placed_by": "XXXXXX",
+              "order_id": "300000000000000",
+              "exchange_order_id": "400000000000000",
+              "parent_order_id": null,
+              "status": "COMPLETE",
+              "status_message": null,
+              "status_message_raw": null,
+              "order_timestamp": "2021-05-31 15:20:28",
+              "exchange_update_timestamp": "2021-05-31 15:20:28",
+              "exchange_timestamp": "2021-05-31 15:20:28",
+              "variety": "regular",
+              "modified": false,
+              "exchange": "NSE",
+              "tradingsymbol": "IOC",
+              "instrument_token": 415745,
+              "order_type": "LIMIT",
+              "transaction_type": "BUY",
+              "validity": "DAY",
+              "product": "CNC",
+              "quantity": 1,
+              "disclosed_quantity": 0,
+              "price": 109.4,
+              "trigger_price": 0,
+              "average_price": 109.4,
+              "filled_quantity": 1,
+              "pending_quantity": 0,
+              "cancelled_quantity": 0,
+              "market_protection": 0,
+              "meta": {},
+              "tag": null,
+              "guid": "XXXXXX"
+            }
+          ]
+        }"#;
+
+        let value: Response<_> = serde_json::from_str(json)?;
+
+        let expected = Response::Success {
+            data: vec![
+                Order {
+                    placed_by: "XXXXXX".into(),
+                    order_id: "100000000000000".into(),
+                    exchange_order_id: Some("200000000000000".into()),
+                    parent_order_id: None,
+                    status: OrderStatus::Cancelled,
+                    status_message: None,
+                    status_message_raw: None,
+                    order_timestamp: "2021-05-31 09:18:57".into(),
+                    exchange_update_timestamp: Some("2021-05-31 09:18:58".into()),
+                    exchange_timestamp: Some("2021-05-31 09:15:38".into()),
+                    variety: Variety::Regular,
+                    modified: false,
+                    exchange: Exchange::CDS,
+                    trading_symbol: "USDINR21JUNFUT".into(),
+                    instrument_token: "412675".into(),
+                    order_type: OrderType::Limit,
+                    transaction_type: TransactionType::Buy,
+                    validity: Validity::Day,
+                    product: Product::NRML,
+                    quantity: 1,
+                    disclosed_quantity: Some(0),
+                    price: Some(72.0),
+                    trigger_price: Some(0.0),
+                    average_price: Some(0.0),
+                    filled_quantity: 0,
+                    pending_quantity: 1,
+                    cancelled_quantity: 1,
+                    tag: None,
+                    guid: "XXXXX".into(),
+                    auction_number: None,
+                    meta: Some(serde_json::json!({
+                        "market_protection": 0,
+                        "meta": {}
+                    })),
+                },
+                Order {
+                    placed_by: "XXXXXX".into(),
+                    order_id: "300000000000000".into(),
+                    exchange_order_id: Some("400000000000000".into()),
+                    parent_order_id: None,
+                    status: OrderStatus::Complete,
+                    status_message: None,
+                    status_message_raw: None,
+                    order_timestamp: "2021-05-31 15:20:28".into(),
+                    exchange_update_timestamp: Some("2021-05-31 15:20:28".into()),
+                    exchange_timestamp: Some("2021-05-31 15:20:28".into()),
+                    variety: Variety::Regular,
+                    modified: false,
+                    exchange: Exchange::NSE,
+                    trading_symbol: "IOC".into(),
+                    instrument_token: "415745".into(),
+                    order_type: OrderType::Limit,
+                    transaction_type: TransactionType::Buy,
+                    validity: Validity::Day,
+                    product: Product::CNC,
+                    quantity: 1,
+                    disclosed_quantity: Some(0),
+                    price: Some(109.4),
+                    average_price: Some(109.4),
+                    trigger_price: Some(0.0),
+                    filled_quantity: 1,
+                    pending_quantity: 0,
+                    cancelled_quantity: 0,
+                    tag: None,
+                    guid: "XXXXXX".into(),
+                    auction_number: None,
+                    meta: Some(serde_json::json!({
+                        "market_protection": 0,
+                        // TODO: Make the values of meta, go inside the top level meta object
+                        "meta": {}
+                    })),
+                },
+            ],
+        };
+
+        assert_eq!(value, expected);
 
         Ok(())
     }
