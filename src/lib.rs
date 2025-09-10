@@ -9,6 +9,7 @@ mod auto_auth;
 mod error;
 pub mod orders;
 mod response;
+mod unimplemented;
 pub mod user;
 pub(crate) mod utils;
 
@@ -16,6 +17,7 @@ pub(crate) mod utils;
 pub use auto_auth::AutoAuth;
 pub use error::{Error, KiteError};
 pub use response::Response;
+pub use unimplemented::*;
 pub use utils::{API_VERSION, REQUEST_TIMEOUT_SECS};
 
 pub struct Authenticated;
