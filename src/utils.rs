@@ -6,7 +6,12 @@ use reqwest::{
 };
 use serde::{Deserialize, Deserializer};
 
-pub const REQUEST_TIMEOUT_SECS: u64 = 1;
+/// The default request timeout (in seconds) for all HTTP requests made by the client.
+/// The default is 1 second.
+///
+/// If you want to update the request timeout for all requests, consider updating this
+/// value before initializing [KiteConnect](super::KiteConnect).
+pub static REQUEST_TIMEOUT_SECS: u64 = 1;
 
 pub const API_VERSION: u8 = 3;
 pub const API_VERSION_STR: &str = "3";
