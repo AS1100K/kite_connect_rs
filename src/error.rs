@@ -25,6 +25,8 @@ pub enum KiteError {
     DataException(String),
     /// Represents an unclassified error. This should only happen rarely
     GeneralException(String),
+    /// Represents permission related errors, such as insufficient privileges to perform an action.
+    PermissionException(String),
     /// Unknown Error. `(error_type, message)`
     UnknownError(String, String),
 }
@@ -63,6 +65,7 @@ impl From<(Cow<'_, str>, Cow<'_, str>)> for KiteError {
             "NetworkException" => Self::NetworkException(message.into_owned()),
             "DataException" => Self::DataException(message.into_owned()),
             "GeneralException" => Self::GeneralException(message.into_owned()),
+            "PermissionException" => Self::PermissionException(message.into_owned()),
             _ => Self::UnknownError(error_type.into_owned(), message.into_owned()),
         }
     }
@@ -84,6 +87,7 @@ impl Display for KiteError {
             }
             KiteError::DataException(message) => write!(f, "DataException: {message}"),
             KiteError::GeneralException(message) => write!(f, "GeneralException: {message}"),
+            KiteError::PermissionException(message) => write!(f, "PermissionException: {message}"),
             KiteError::UnknownError(error_type, message) => {
                 write!(f, "UnknownError: {error_type} ({message})")
             }
