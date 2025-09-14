@@ -1,6 +1,6 @@
-use std::fmt::Display;
 use super::*;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 pub const PLACE_REGULAR_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/regular";
 pub const PLACE_AMO_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/amo";
