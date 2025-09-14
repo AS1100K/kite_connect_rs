@@ -7,6 +7,7 @@ use utils::AuthInfo;
 #[cfg(feature = "auto_auth")]
 mod auto_auth;
 mod error;
+pub mod historical;
 pub mod orders;
 pub mod portfolio;
 pub mod quotes;
