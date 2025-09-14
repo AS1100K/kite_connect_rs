@@ -154,6 +154,12 @@ impl From<serde_urlencoded::ser::Error> for Error {
     }
 }
 
+impl From<csv::Error> for Error {
+    fn from(value: csv::Error) -> Self {
+        Self::Serde(Box::new(value))
+    }
+}
+
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
         if value.is_timeout() {

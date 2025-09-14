@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use super::*;
 use serde::{Deserialize, Serialize};
 
@@ -52,6 +53,22 @@ pub enum Exchange {
     MF,
     /// NSE Futures & Options
     NFO,
+}
+
+impl Display for Exchange {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            Exchange::BFO => "BFO",
+            Exchange::MCX => "MCX",
+            Exchange::NSE => "NSE",
+            Exchange::CDS => "CDS",
+            Exchange::BSE => "BSE",
+            Exchange::BCD => "BCD",
+            Exchange::MF => "MF",
+            Exchange::NFO => "NFO",
+        };
+        write!(f, "{}", s)
+    }
 }
 
 /// Margin product

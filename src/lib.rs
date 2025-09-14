@@ -9,6 +9,7 @@ mod auto_auth;
 mod error;
 pub mod orders;
 pub mod portfolio;
+pub mod quotes;
 mod response;
 mod unimplemented;
 pub mod user;
