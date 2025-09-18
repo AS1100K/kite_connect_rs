@@ -15,6 +15,7 @@ mod response;
 mod unimplemented;
 pub mod user;
 pub(crate) mod utils;
+pub mod ws;
 
 #[cfg(feature = "auto_auth")]
 pub use auto_auth::AutoAuth;

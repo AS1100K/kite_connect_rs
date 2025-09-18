@@ -102,10 +102,23 @@ pub struct Ohlc {
     pub close: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Default, Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct DepthBook {
     pub buy: Vec<Depth>,
     pub sell: Vec<Depth>,
+}
+
+impl DepthBook {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            buy: Vec::with_capacity(capacity),
+            sell: Vec::with_capacity(capacity),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]

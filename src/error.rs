@@ -107,6 +107,9 @@ pub enum Error {
     /// Error originating from reqwest HTTP requests.
     Reqwest(reqwest::Error),
 
+    /// Error originated from Tungstenite WebSocket connection.
+    TungsteniteError(tokio_tungstenite::tungstenite::Error),
+
     /// Error indicating that the provided access token could not be converted to a header value.
     InvalidAccessToken,
 
@@ -127,6 +130,10 @@ impl Display for Error {
                 "Error originating from serialization or deserialization. {e}"
             ),
             Error::Reqwest(e) => write!(f, "Error originating from reqwest HTTP requests. {e}"),
+            Error::TungsteniteError(e) => write!(
+                f,
+                "Error originated from Tungstenite WebSocket connection. {e}"
+            ),
             Error::InvalidAccessToken => write!(
                 f,
                 "Error indicating that the provided access token could not be converted to a header value."
@@ -171,6 +178,12 @@ impl From<reqwest::Error> for Error {
         }
 
         Self::Reqwest(value)
+    }
+}
+
+impl From<tokio_tungstenite::tungstenite::Error> for Error {
+    fn from(value: tokio_tungstenite::tungstenite::Error) -> Self {
+        Self::TungsteniteError(value)
     }
 }
 
