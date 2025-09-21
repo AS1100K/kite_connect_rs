@@ -149,7 +149,7 @@ async fn handle_read_stream(
         match msg {
             Ok(msg) => match msg {
                 Message::Binary(bytes) => decode_n_send_bytes(bytes, &tx),
-                Message::Text(bytes) => println!("{bytes}"),
+                Message::Text(_bytes) => { /* TODO */ }
                 Message::Ping(_) | Message::Pong(_) => { /* TODO: Verify if we need to send Ping-Pong manually */
                 }
                 Message::Close(_) => {
@@ -181,8 +181,6 @@ fn decode_n_send_bytes(bytes: Bytes, tx: &Sender<Ticker>) {
     if bytes.len() < 2 {
         return;
     }
-
-    println!("Packet Length: {}", bytes.len());
 
     let mut cursor = Cursor::new(bytes);
 
@@ -332,12 +330,8 @@ fn send_quote_n_full_packet(cursor: &mut Cursor<Bytes>, packet_len: u16, tx: &Se
         if let Err(err) = tx.send(Ticker::FullQuote(full_quote)) {
             eprintln!("Failed to send Full Quote Packet to channel which is already closed: {err}");
         }
-    } else {
-        if let Err(err) = tx.send(Ticker::PartialQuote(quote)) {
-            eprintln!(
-                "Failed to send Partial Quote Packet to channel which is already closed: {err}"
-            );
-        }
+    } else if let Err(err) = tx.send(Ticker::PartialQuote(quote)) {
+        eprintln!("Failed to send Partial Quote Packet to channel which is already closed: {err}");
     }
 }
 

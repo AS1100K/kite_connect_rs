@@ -22,10 +22,17 @@ tokio-tungstenite={ version = "0.27", features=["native-tls"] }
 futures-util = "0.3"
 byteorder = "1.5"
 
+[dev-dependencies]
+ratatui = "0.29"
+
 [[example]]
 name = "basic_auth"
 required-features = ["auto_auth", "tokio/rt", "tokio/macros"]
 
 [[example]]
 name = "ws"
+required-features = ["auto_auth", "tokio/rt-multi-thread", "tokio/macros"]
+
+[[example]]
+name = "watch_list"
 required-features = ["auto_auth", "tokio/rt-multi-thread", "tokio/macros"]

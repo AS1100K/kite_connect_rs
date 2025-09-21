@@ -11,7 +11,7 @@ pub const GET_LTP_QUOTES: &str = "https://api.kite.trade/quote/ltp";
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Instrument {
-    pub instrument_token: String,
+    pub instrument_token: u32,
     pub exchange_token: String,
     #[serde(rename = "tradingsymbol")]
     pub trading_symbol: String,
