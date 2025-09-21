@@ -11,13 +11,14 @@ use serde::{Deserialize, Deserializer};
 ///
 /// If you want to update the request timeout for all requests, consider updating this
 /// value before initializing [KiteConnect](super::KiteConnect).
-pub static REQUEST_TIMEOUT_SECS: u64 = 1;
+pub static mut REQUEST_TIMEOUT_SECS: u64 = 1;
 
 pub const API_VERSION: u8 = 3;
 pub const API_VERSION_STR: &str = "3";
 
 pub static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
+#[derive(Clone)]
 pub struct AuthInfo {
     api_key: String,
     api_secret: String,
@@ -75,7 +76,7 @@ pub fn default_client_builder(
     Ok(ClientBuilder::new()
         .default_headers(default_headers)
         .user_agent(APP_USER_AGENT)
-        .timeout(Duration::from_secs(REQUEST_TIMEOUT_SECS))
+        .timeout(Duration::from_secs(unsafe { REQUEST_TIMEOUT_SECS }))
         .build()?)
 }
 

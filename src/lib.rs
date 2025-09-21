@@ -39,6 +39,7 @@ mod sealed {
     impl Sealed for super::AuthPending {}
 }
 
+#[derive(Clone)]
 pub struct KiteConnect<T: AuthStatus = AuthPending> {
     pub(crate) client: Client,
     pub(crate) auth_info: AuthInfo,

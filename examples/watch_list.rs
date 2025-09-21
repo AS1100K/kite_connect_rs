@@ -1,4 +1,4 @@
-use kite_connect::quotes::{Instrument, InstrumentType, Ohlc};
+use kite_connect::quotes::{Instrument, Ohlc};
 use kite_connect::ws::{KiteTicker, Req, Ticker};
 use kite_connect::{AutoAuth, KiteConnect};
 use ratatui::crossterm::event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode};
@@ -44,8 +44,8 @@ impl App {
             .all_instruments
             .iter()
             .filter(|&instrument| instrument.name.starts_with(query.as_str()))
-            .cloned()
             .take(5)
+            .cloned()
             .collect();
 
         self.search_cursor_position = 0;
@@ -53,9 +53,7 @@ impl App {
 }
 
 pub struct WatchInstrument {
-    name: String,
     trading_symbol: String,
-    instrument_type: InstrumentType,
     ltp: f64,
     ohlc: Ohlc,
 }
@@ -108,12 +106,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     while !app.should_quit {
         terminal.draw(|f| ui(f, &app))?;
 
-        if event::poll(Duration::from_millis(250))? {
-            if let Event::Key(key) = event::read()? {
-                match app.screen {
-                    Screen::WatchList => handle_watchlist_input(&mut app, key.code),
-                    Screen::Search => handle_search_input(&mut app, key.code).await?,
-                }
+        if event::poll(Duration::from_millis(250))?
+            && let Event::Key(key) = event::read()?
+        {
+            match app.screen {
+                Screen::WatchList => handle_watchlist_input(&mut app, key.code),
+                Screen::Search => handle_search_input(&mut app, key.code).await?,
             }
         }
 
@@ -328,9 +326,7 @@ async fn handle_search_input(
                 app.watch_instruments.insert(
                     selected.instrument_token,
                     WatchInstrument {
-                        name: selected.name.clone(),
                         trading_symbol: selected.trading_symbol.clone(),
-                        instrument_type: InstrumentType::EQ,
                         ltp: 0.0,
                         ohlc: Ohlc {
                             open: 0.0,
