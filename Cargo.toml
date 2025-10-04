@@ -18,7 +18,7 @@ csv = { workspace = true }
 
 sha2 = "0.10"
 serde_urlencoded = "0.7"
-tokio-tungstenite={ version = "0.27", features=["native-tls"] }
+tokio-tungstenite={ version = "0.28", features=["native-tls"] }
 futures-util = "0.3"
 byteorder = "1.5"
 
