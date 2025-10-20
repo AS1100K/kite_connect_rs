@@ -76,10 +76,12 @@ impl Display for Exchange {
 pub enum Product {
     /// Cash and Carry
     CNC,
-    /// Normal
+    /// Normal for futures and options
     NRML,
     /// Margin Intraday Square-off
     MIS,
+    /// Margin Trading Facility
+    MTF,
     /// Bracket Order
     BO,
     /// Cover Order

@@ -15,6 +15,7 @@ mod response;
 mod unimplemented;
 pub mod user;
 pub(crate) mod utils;
+pub mod virtual_contract_note;
 pub mod ws;
 
 #[cfg(feature = "auto_auth")]
