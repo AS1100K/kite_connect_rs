@@ -5,6 +5,9 @@ use super::*;
 
 pub const GET_HISTORICAL_CANDLE_ENDPOINT: &str = "https://api.kite.trade/instruments/historical/";
 
+/// The format string used for candle timestamps.
+pub const CANDLE_TIMESTAMP_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%z";
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum Interval {
