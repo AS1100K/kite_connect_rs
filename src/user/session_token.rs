@@ -1,6 +1,7 @@
 use super::*;
 use crate::orders::{Exchange, OrderType, Product};
 
+/// API endpoint for generating session tokens.
 pub const SESSION_TOKEN_ENDPOINT: &str = "https://api.kite.trade/session/token";
 
 /// Session token response containing user information and authentication tokens.

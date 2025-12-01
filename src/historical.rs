@@ -3,6 +3,7 @@ use std::fmt::Display;
 
 use super::*;
 
+/// API endpoint for fetching historical candle data.
 pub const GET_HISTORICAL_CANDLE_ENDPOINT: &str = "https://api.kite.trade/instruments/historical/";
 
 /// The format string used for candle timestamps.
@@ -15,18 +16,26 @@ pub const CANDLE_TIMESTAMP_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%z";
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum Interval {
+    /// 1-minute interval
     Minute,
+    /// Daily interval
     Day,
+    /// 3-minute interval
     #[serde(rename = "3minute")]
     ThreeMinute,
+    /// 5-minute interval
     #[serde(rename = "5minute")]
     FiveMinute,
+    /// 10-minute interval
     #[serde(rename = "10minute")]
     TenMinute,
+    /// 15-minute interval
     #[serde(rename = "15minute")]
     FifteenMinute,
+    /// 30-minute interval
     #[serde(rename = "30minute")]
     ThirtyMinute,
+    /// 60-minute (1-hour) interval
     #[serde(rename = "60minute")]
     SixtyMinute,
 }
@@ -68,12 +77,19 @@ pub struct HistoricalCandleReq {
 /// For F&O instruments, it may also include open interest data.
 #[derive(Debug, Serialize, PartialEq, Clone)]
 pub struct Candle {
+    /// Timestamp of the candle in ISO 8601 format
     pub timestamp: String,
+    /// Opening price of the candle
     pub open: f64,
+    /// Highest price during the candle period
     pub high: f64,
+    /// Lowest price during the candle period
     pub low: f64,
+    /// Closing price of the candle
     pub close: f64,
+    /// Volume traded during the candle period
     pub volume: i64,
+    /// Open interest (only for F&O instruments)
     pub oi: Option<i64>,
 }
 

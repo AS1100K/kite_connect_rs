@@ -3,10 +3,14 @@ use sha2::Digest;
 
 use crate::{AuthPending, Authenticated, Error, KiteConnect, Response};
 
+/// User funds and margins module.
 pub mod funds;
+/// User profile module.
 pub mod profile;
+/// Session token and authentication module.
 pub mod session_token;
 
+/// Kite Connect login endpoint URL.
 pub const LOGIN_ENDPOINT: &str = "https://kite.zerodha.com/connect/login?v=3&api_key=";
 
 /// User metadata containing additional account information.

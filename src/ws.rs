@@ -13,6 +13,7 @@ use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async};
 
 use super::*;
 
+/// WebSocket endpoint for real-time market data.
 pub const KITE_WEB_SOCKET_ENDPOINT: &str = "wss://ws.kite.trade/";
 
 /// WebSocket ticker for receiving real-time market data.
@@ -31,10 +32,15 @@ pub struct KiteTicker {
 /// The ticker can send various types of market data updates depending on the subscription mode.
 #[derive(Debug, PartialEq, Clone)]
 pub enum Ticker {
+    /// WebSocket connection has been closed
     ConnectionClosed,
+    /// OHLC quote for index instruments
     IndicesQuote(OhlcQuote),
+    /// Last Traded Price quote
     LtpQuote(LtpQuote),
+    /// Partial quote (without depth information)
     PartialQuote(PartialQuote),
+    /// Full quote (with depth information)
     FullQuote(FullQuote),
 }
 
@@ -43,13 +49,21 @@ pub enum Ticker {
 /// This is returned when subscribed in "quote" mode.
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct PartialQuote {
+    /// Numerical identifier issued by the exchange representing the instrument
     pub instrument_token: u32,
+    /// Last traded price
     pub last_price: f64,
+    /// Last traded quantity
     pub last_traded_quantity: u32,
+    /// Average traded price
     pub average_traded_price: f64,
+    /// Total volume traded today
     pub volume_traded: u32,
+    /// Total buy quantity in the order book
     pub total_buy_quantity: u32,
+    /// Total sell quantity in the order book
     pub total_sell_quantity: u32,
+    /// OHLC (Open, High, Low, Close) price data
     pub ohlc: Ohlc,
 }
 
@@ -58,21 +72,33 @@ pub struct PartialQuote {
 /// This is returned when subscribed in "full" mode.
 #[derive(Debug, PartialEq, Clone)]
 pub struct FullQuote {
+    /// Partial quote data (basic market information)
     pub quote: PartialQuote,
+    /// Last trade timestamp (Unix timestamp)
     pub last_trade_time: u32,
+    /// Current open interest
     pub oi: u32,
+    /// Highest open interest during the day
     pub oi_day_high: u32,
+    /// Lowest open interest during the day
     pub oi_day_low: u32,
+    /// Exchange timestamp (Unix timestamp)
     pub exchange_timestamp: u32,
+    /// Market depth (order book) information
     pub depth: DepthBook,
 }
 
 /// WebSocket request types for managing subscriptions.
 pub enum Req<'a> {
+    /// Subscribe to market data for the given instrument tokens
     Subscribe(&'a [u32]),
+    /// Unsubscribe from market data for the given instrument tokens
     Unsubscribe(&'a [u32]),
+    /// Change subscription mode for the given instrument tokens
     Mode {
+        /// Subscription mode to use
         mode: ReqMode,
+        /// Instrument tokens to change mode for
         instrument_tokens: &'a [u32],
     },
 }
@@ -83,8 +109,11 @@ pub enum Req<'a> {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum ReqMode {
+    /// Last Traded Price mode - only LTP updates
     Ltp,
+    /// Quote mode - OHLC and basic market data (without depth)
     Quote,
+    /// Full mode - complete market data including depth
     Full,
 }
 

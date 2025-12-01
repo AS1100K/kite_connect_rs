@@ -4,9 +4,13 @@ use std::collections::HashMap;
 
 use super::*;
 
+/// API endpoint for retrieving all instruments.
 pub const GET_INSTRUMENTS_ENDPOINT: &str = "https://api.kite.trade/instruments";
+/// API endpoint for retrieving full market quotes.
 pub const GET_FULL_MARKET_QUOTES: &str = "https://api.kite.trade/quote";
+/// API endpoint for retrieving OHLC quotes.
 pub const GET_OHLC_QUOTES: &str = "https://api.kite.trade/quote/ohlc";
+/// API endpoint for retrieving LTP (Last Traded Price) quotes.
 pub const GET_LTP_QUOTES: &str = "https://api.kite.trade/quote/ltp";
 
 /// Represents a financial instrument (stock, futures, options, etc.) available for trading.
@@ -17,18 +21,30 @@ pub const GET_LTP_QUOTES: &str = "https://api.kite.trade/quote/ltp";
 /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/market-quotes/#instruments) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Instrument {
+    /// Numerical identifier issued by the exchange representing the instrument
     pub instrument_token: u32,
+    /// Exchange-specific token identifier
     pub exchange_token: String,
+    /// Trading symbol of the instrument
     #[serde(rename = "tradingsymbol")]
     pub trading_symbol: String,
+    /// Full name of the instrument
     pub name: String,
+    /// Last traded price of the instrument
     pub last_price: f64,
+    /// Expiry date for derivatives (format: YYYY-MM-DD)
     pub expiry: String,
+    /// Strike price for options (0 for non-options)
     pub strike: f64,
+    /// Minimum price movement allowed for the instrument
     pub tick_size: f64,
+    /// Lot size (number of units in one lot)
     pub lot_size: i64,
+    /// Type of instrument (EQ, FUT, CE, PE)
     pub instrument_type: InstrumentType,
+    /// Trading segment
     pub segment: String,
+    /// Exchange name
     pub exchange: String,
 }
 
@@ -72,6 +88,7 @@ pub struct Quote {
     pub open_interest: Option<f64>,
     /// Last traded quantity
     pub last_quantity: i64,
+    /// OHLC (Open, High, Low, Close) price data
     pub ohlc: Ohlc,
     /// The absolute change from yesterday's close to last traded price
     pub net_change: f64,
@@ -85,6 +102,7 @@ pub struct Quote {
     pub oi_day_high: f64,
     /// The lowest Open Interest recorded during the day
     pub oi_day_low: f64,
+    /// Market depth (order book) showing buy and sell orders at different price levels
     pub depth: DepthBook,
 }
 
@@ -98,6 +116,7 @@ pub struct OhlcQuote {
     pub instrument_token: u32,
     /// Last traded market price
     pub last_price: f64,
+    /// OHLC (Open, High, Low, Close) price data
     pub ohlc: Ohlc,
 }
 
@@ -139,10 +158,16 @@ pub struct DepthBook {
 }
 
 impl DepthBook {
+    /// Creates a new empty `DepthBook`.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Creates a new `DepthBook` with the specified capacity for buy and sell depth vectors.
+    ///
+    /// # Arguments
+    ///
+    /// * `capacity` - Initial capacity for both buy and sell depth vectors
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             buy: Vec::with_capacity(capacity),

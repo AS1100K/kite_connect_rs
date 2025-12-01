@@ -1,3 +1,5 @@
+#![deny(missing_docs)]
+
 //! Kite Connect API
 //!
 //! This crate provides a Rust client for the Kite Connect API v3, enabling developers to build
@@ -47,15 +49,37 @@ use utils::AuthInfo;
 #[cfg(feature = "auto_auth")]
 mod auto_auth;
 mod error;
+/// Historical market data module.
+///
+/// Provides functionality to fetch historical OHLCV (Open, High, Low, Close, Volume) data
+/// for instruments at various time intervals.
 pub mod historical;
+/// Order management module.
+///
+/// Provides functionality to place, modify, and cancel orders of various types and varieties.
 pub mod orders;
+/// Portfolio management module.
+///
+/// Provides functionality to retrieve holdings, positions, and convert positions between products.
 pub mod portfolio;
+/// Market quotes and instruments module.
+///
+/// Provides functionality to fetch market quotes, instrument master data, and real-time market information.
 pub mod quotes;
 mod response;
 mod unimplemented;
+/// User account management module.
+///
+/// Provides functionality to manage user profiles, authentication, and account funds/margins.
 pub mod user;
 pub(crate) mod utils;
+/// Virtual contract note calculation module.
+///
+/// Provides functionality to calculate trading charges and P&L for trades.
 pub mod virtual_contract_note;
+/// WebSocket real-time market data module.
+///
+/// Provides functionality to subscribe to real-time market data feeds via WebSocket.
 pub mod ws;
 
 #[cfg(feature = "auto_auth")]

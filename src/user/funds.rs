@@ -1,7 +1,10 @@
 use crate::user::*;
 
+/// API endpoint for retrieving total user margins (equity and commodity).
 pub const USER_FUNDS_ENDPOINT: &str = "https://api.kite.trade/user/margins";
+/// API endpoint for retrieving equity segment margins.
 pub const USER_EQUITY_FUNDS_ENDPOINT: &str = "https://api.kite.trade/user/margins/equity";
+/// API endpoint for retrieving commodity segment margins.
 pub const USER_COMMODITY_FUNDS_ENDPOINT: &str = "https://api.kite.trade/user/margins/commodity";
 
 /// Total funds information for both equity and commodity segments.
@@ -10,7 +13,9 @@ pub const USER_COMMODITY_FUNDS_ENDPOINT: &str = "https://api.kite.trade/user/mar
 /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/user/#margins) for details.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct TotalFunds {
+    /// Equity segment funds information
     pub equity: SegmentFunds,
+    /// Commodity segment funds information
     pub commodity: SegmentFunds,
 }
 
@@ -24,7 +29,9 @@ pub struct SegmentFunds {
     pub enabled: bool,
     /// Net cash balance available for trading (intraday_payin + adhoc_margin + collateral)
     pub net: f64,
+    /// Available funds breakdown
     pub available: AvailableFunds,
+    /// Utilized funds breakdown
     pub utilised: UtilisedFunds,
 }
 

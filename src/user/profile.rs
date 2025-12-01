@@ -3,6 +3,7 @@ use crate::{
     user::*,
 };
 
+/// API endpoint for retrieving user profile information.
 pub const USER_PROFILE_ENDPOINT: &str = "https://api.kite.trade/user/profile";
 
 /// User profile information.

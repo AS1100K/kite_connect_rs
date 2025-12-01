@@ -2,21 +2,34 @@ use super::*;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
+/// API endpoint for placing regular orders.
 pub const PLACE_REGULAR_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/regular";
+/// API endpoint for placing After Market Orders (AMO).
 pub const PLACE_AMO_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/amo";
+/// API endpoint for placing Cover Orders (CO).
 pub const PLACE_CO_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/co";
+/// API endpoint for placing Iceberg Orders.
 pub const PLACE_ICEBERG_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/iceberg";
+/// API endpoint for placing Auction Orders.
 pub const PLACE_AUCTION_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/auction";
 
+/// API endpoint for modifying regular orders.
 pub const MODIFY_REGULAR_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/regular/";
+/// API endpoint for modifying cover orders.
 pub const MODIFY_COVER_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/regular/co/";
 
+/// API endpoint for cancelling regular orders.
 pub const CANCEL_REGULAR_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/regular/";
+/// API endpoint for cancelling AMO orders.
 pub const CANCEL_AMO_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/amo/";
+/// API endpoint for cancelling CO orders.
 pub const CANCEL_CO_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/co/";
+/// API endpoint for cancelling Iceberg orders.
 pub const CANCEL_ICEBERG_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/iceberg/";
+/// API endpoint for cancelling Auction orders.
 pub const CANCEL_AUCTION_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/auction/";
 
+/// API endpoint for retrieving all orders.
 pub const GET_ORDERS_ENDPOINT: &str = "https://api.kite.trade/orders";
 
 /// Order variety types supported by the Kite Connect API.
@@ -159,6 +172,7 @@ pub enum TransactionType {
 /// Ensure you set the appropriate fields based on your order configuration.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PlaceOrderRequest {
+    /// Order variety (regular, amo, co, iceberg, auction)
     #[serde(skip_serializing)]
     pub variety: Variety,
     /// Tradingsymbol of the instrument

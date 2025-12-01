@@ -5,9 +5,12 @@ use crate::orders::{Exchange, Product, TransactionType};
 
 use super::*;
 
+/// API endpoint for retrieving holdings.
 pub const GET_HOLDINGS_ENDPOINT: &str = "https://api.kite.trade/portfolio/holdings";
+/// API endpoint for retrieving auction holdings.
 pub const GET_HOLDINGS_AUCTION_ENDPOINT: &str =
     "https://api.kite.trade/portfolio/holdings/auctions";
+/// API endpoint for retrieving and updating positions.
 pub const GET_PUT_POSITIONS_ENDPOINT: &str = "https://api.kite.trade/portfolio/positions";
 
 /// Represents a holding (stock or security) in the user's portfolio.
@@ -18,32 +21,56 @@ pub const GET_PUT_POSITIONS_ENDPOINT: &str = "https://api.kite.trade/portfolio/p
 /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#holdings) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Holding {
+    /// Trading symbol of the instrument
     #[serde(rename = "tradingsymbol")]
     pub trading_symbol: String,
+    /// Exchange where the instrument is traded
     pub exchange: Exchange,
+    /// Numerical identifier issued by the exchange representing the instrument
     pub instrument_token: u32,
+    /// ISIN (International Securities Identification Number) of the instrument
     pub isin: String,
+    /// Quantity available in T+1 (next day delivery)
     pub t1_quantity: i64,
+    /// Quantity that has been realized (settled)
     pub realised_quantity: i64,
+    /// Total quantity of the holding
     pub quantity: i64,
+    /// Quantity that is currently being used (e.g., in open orders)
     pub used_quantity: i64,
+    /// Quantity that has been authorized for trading
     pub authorised_quantity: i64,
+    /// Quantity at the start of the day
     pub opening_quantity: i64,
+    /// Date when the holding was authorized
     pub authorised_date: String,
+    /// Current price of the instrument
     pub price: f64,
+    /// Average purchase price of the holding
     pub average_price: f64,
+    /// Last traded price of the instrument
     pub last_price: f64,
+    /// Closing price from the previous trading day
     pub close_price: f64,
+    /// Profit and Loss (unrealized)
     pub pnl: f64,
+    /// Absolute change in price from previous close
     pub day_change: f64,
+    /// Percentage change in price from previous close
     pub day_change_percentage: f64,
+    /// Product type (CNC, MIS, etc.)
     pub product: Product,
+    /// Quantity used as collateral
     pub collateral_quantity: i64,
+    /// Type of collateral
     pub collateral_type: Option<String>,
+    /// Whether there is a discrepancy in the holding
     pub discrepancy: bool,
-    // Undocumented fields in Kite Documentation
+    /// Authorization details (undocumented field in Kite API)
     pub authorisation: Value,
+    /// Margin Trading Facility details (undocumented field in Kite API)
     pub mtf: Value,
+    /// Short quantity (for short positions)
     pub short_quantity: i64,
 }
 
@@ -53,28 +80,50 @@ pub struct Holding {
 /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#auction-holdings) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct HoldingAuction {
+    /// Trading symbol of the instrument
     #[serde(rename = "tradingsymbol")]
     pub trading_symbol: String,
+    /// Exchange where the instrument is traded
     pub exchange: Exchange,
+    /// Numerical identifier issued by the exchange representing the instrument
     pub instrument_token: u32,
+    /// ISIN (International Securities Identification Number) of the instrument
     pub isin: String,
+    /// Product type (CNC, MIS, etc.)
     pub product: Product,
+    /// Current price of the instrument
     pub price: f64,
+    /// Total quantity of the holding
     pub quantity: i64,
+    /// Quantity available in T+1 (next day delivery)
     pub t1_quantity: i64,
+    /// Quantity that has been realized (settled)
     pub realised_quantity: i64,
+    /// Quantity that has been authorized for trading
     pub authorised_quantity: i64,
+    /// Date when the holding was authorized
     pub authorised_date: String,
+    /// Quantity at the start of the day
     pub opening_quantity: i64,
+    /// Quantity used as collateral
     pub collateral_quantity: i64,
+    /// Type of collateral
     pub collateral_type: Option<String>,
+    /// Whether there is a discrepancy in the holding
     pub discrepancy: bool,
+    /// Average purchase price of the holding
     pub average_price: f64,
+    /// Last traded price of the instrument
     pub last_price: f64,
+    /// Closing price from the previous trading day
     pub close_price: f64,
+    /// Profit and Loss (unrealized)
     pub pnl: f64,
+    /// Absolute change in price from previous close
     pub day_change: f64,
+    /// Percentage change in price from previous close
     pub day_change_percentage: f64,
+    /// Auction number for the auction holding
     pub auction_number: String,
 }
 
@@ -86,35 +135,64 @@ pub struct HoldingAuction {
 /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#positions) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Position {
+    /// Trading symbol of the instrument
     #[serde(rename = "tradingsymbol")]
     pub trading_symbol: String,
+    /// Exchange where the instrument is traded
     pub exchange: Exchange,
+    /// Numerical identifier issued by the exchange representing the instrument
     pub instrument_token: u32,
+    /// Product type (MIS, NRML, etc.)
     pub product: Product,
+    /// Net quantity of the position (positive for long, negative for short)
     pub quantity: i64,
+    /// Quantity carried forward from previous day
     pub overnight_quantity: i64,
+    /// Multiplier for the instrument (lot size)
     pub multiplier: i64,
+    /// Average price of the position
     pub average_price: f64,
+    /// Closing price from the previous trading day
     pub close_price: f64,
+    /// Last traded price of the instrument
     pub last_price: f64,
+    /// Current value of the position
     pub value: f64,
+    /// Total profit and loss
     pub pnl: f64,
+    /// Mark-to-market value
     pub m2m: f64,
+    /// Unrealized profit and loss
     pub unrealised: f64,
+    /// Realized profit and loss
     pub realised: f64,
+    /// Total buy quantity
     pub buy_quantity: i64,
+    /// Average buy price
     pub buy_price: f64,
+    /// Total buy value
     pub buy_value: f64,
+    /// Mark-to-market value for buy side
     pub buy_m2m: f64,
+    /// Day buy quantity (intraday)
     pub day_buy_quantity: i64,
+    /// Day buy price (intraday)
     pub day_buy_price: f64,
+    /// Day buy value (intraday)
     pub day_buy_value: f64,
+    /// Total sell quantity
     pub sell_quantity: i64,
+    /// Average sell price
     pub sell_price: f64,
+    /// Total sell value
     pub sell_value: f64,
+    /// Mark-to-market value for sell side
     pub sell_m2m: f64,
+    /// Day sell quantity (intraday)
     pub day_sell_quantity: i64,
+    /// Day sell price (intraday)
     pub day_sell_price: f64,
+    /// Day sell value (intraday)
     pub day_sell_value: f64,
 }
 
@@ -140,13 +218,20 @@ pub struct Positions {
 /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#convert-position) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct ConvertPositionReq {
+    /// Trading symbol of the instrument
     #[serde(rename = "tradingsymbol")]
     pub trading_symbol: String,
+    /// Exchange where the instrument is traded
     pub exchange: Exchange,
+    /// Transaction type (BUY or SELL)
     pub transaction_type: TransactionType,
+    /// Position type (day or overnight)
     pub position_type: PositionType,
+    /// Quantity to convert
     pub quantity: i64,
+    /// Current product type
     pub old_product: Product,
+    /// Target product type
     pub new_product: Product,
 }
 

@@ -13,14 +13,23 @@ use crate::orders::{Exchange, Product};
 /// accurate values.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct VirtualContractNote {
+    /// Brokerage charges
     pub brokerage: f64,
+    /// Securities Transaction Tax (STT)
     pub stt: f64,
+    /// Transaction charges (exchange charges)
     pub transaction_charges: f64,
+    /// Goods and Services Tax (GST) on brokerage and other charges
     pub gst: f64,
+    /// SEBI charges
     pub sebi_charges: f64,
+    /// Stamp duty charges
     pub stamp_charges: f64,
+    /// Total of all charges
     pub net_charges: f64,
+    /// Gross profit and loss (before charges)
     pub pnl: f64,
+    /// Net profit and loss (after all charges)
     pub net_pnl: f64,
 }
 
@@ -29,10 +38,15 @@ pub struct VirtualContractNote {
 /// This structure contains the trade details needed to calculate charges and P&L.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct OrderReq {
+    /// Exchange where the trade was executed
     pub exchange: Exchange,
+    /// Product type (CNC, MIS, etc.)
     pub product: Product,
+    /// Quantity traded
     pub quantity: i64,
+    /// Buy price per unit
     pub buy: f64,
+    /// Sell price per unit
     pub sell: f64,
 }
 
