@@ -19,39 +19,51 @@ pub const CANCEL_AUCTION_ORDER_ENDPOINT: &str = "https://api.kite.trade/orders/a
 
 pub const GET_ORDERS_ENDPOINT: &str = "https://api.kite.trade/orders";
 
+/// Order variety types supported by the Kite Connect API.
+///
+/// Different order varieties have different characteristics and use cases.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/) for details.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Variety {
-    /// Regular order
+    /// Regular order - Standard order type for normal trading
     Regular,
-    /// After Market Order
+    /// After Market Order (AMO) - Orders placed after market hours for execution on the next trading day
     AMO,
-    /// Cover Order. Read More <https://support.zerodha.com/category/trading-and-markets/charts-and-orders/order/articles/what-are-cover-orders-and-how-to-use-them>
+    /// Cover Order (CO) - An order with an in-built stop-loss order
+    ///
+    /// Read more: <https://support.zerodha.com/category/trading-and-markets/charts-and-orders/order/articles/what-are-cover-orders-and-how-to-use-them>
     CO,
-    /// Iceberg Order. Read More <https://support.zerodha.com/category/trading-and-markets/charts-and-orders/order/articles/iceberg-orders>
+    /// Iceberg Order - Large orders split into smaller visible quantities
+    ///
+    /// Read more: <https://support.zerodha.com/category/trading-and-markets/charts-and-orders/order/articles/iceberg-orders>
     IceBerg,
-    /// Auction Order. Read More <https://support.zerodha.com/category/trading-and-markets/general-kite/auctions/articles/participation-in-the-auction>
+    /// Auction Order - Orders for participating in exchange auctions
+    ///
+    /// Read more: <https://support.zerodha.com/category/trading-and-markets/general-kite/auctions/articles/participation-in-the-auction>
     Auction,
 }
 
-/// Represents an exchange
+/// Represents a stock exchange or trading segment.
+///
+/// Different exchanges support different types of instruments and have different trading rules.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Exchange {
-    /// BSE Futures & Options
+    /// BSE Futures & Options - Futures and options segment of the Bombay Stock Exchange
     BFO,
-    /// Multi Commodity Exchange
+    /// Multi Commodity Exchange - Commodity derivatives exchange
     MCX,
-    /// National Stock Exchange
+    /// National Stock Exchange - Main equity and derivatives exchange
     NSE,
-    /// Currency Derivatives Segment
+    /// Currency Derivatives Segment - Currency futures and options on NSE
     CDS,
-    /// Bombay Stock Exchange
+    /// Bombay Stock Exchange - Main equity exchange
     BSE,
-    /// Bombay Currency Derivatives
+    /// Bombay Currency Derivatives - Currency derivatives on BSE
     BCD,
-    /// Mutual Funds
+    /// Mutual Funds - Mutual fund trading segment
     MF,
-    /// NSE Futures & Options
+    /// NSE Futures & Options - Futures and options segment of the National Stock Exchange
     NFO,
 }
 
@@ -71,58 +83,80 @@ impl Display for Exchange {
     }
 }
 
-/// Margin product
+/// Margin product types that determine how margins are calculated and when positions are squared off.
+///
+/// Different products have different margin requirements and square-off times.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/#product-types) for details.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Product {
-    /// Cash and Carry
+    /// Cash and Carry (CNC) - For delivery-based trading where you take delivery of shares
     CNC,
-    /// Normal for futures and options
+    /// Normal (NRML) - For futures and options positions that can be carried forward
     NRML,
-    /// Margin Intraday Square-off
+    /// Margin Intraday Square-off (MIS) - For intraday trading with automatic square-off at market close
     MIS,
-    /// Margin Trading Facility
+    /// Margin Trading Facility (MTF) - For margin trading with specific terms
     MTF,
-    /// Bracket Order
+    /// Bracket Order (BO) - An order with both target and stop-loss prices
     BO,
-    /// Cover Order
+    /// Cover Order (CO) - An order with an in-built stop-loss
     CO,
 }
 
-/// Order types
+/// Order execution types that determine how the order is executed.
+///
+/// Different order types have different execution characteristics and price requirements.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum OrderType {
-    /// Market order
+    /// Market order - Executed immediately at the best available market price
     #[serde(rename = "MARKET")]
     Market,
-    /// Limit order
+    /// Limit order - Executed only at the specified price or better
     #[serde(rename = "LIMIT")]
     Limit,
-    /// Stop Loss order
+    /// Stop Loss order (SL) - A limit order that becomes active when the trigger price is reached
     SL,
-    /// Stop Loss Market order
+    /// Stop Loss Market order (SL-M) - A market order that becomes active when the trigger price is reached
     #[allow(non_camel_case_types)]
     #[serde(rename = "SL-M")]
     SL_M,
 }
 
+/// Order validity types that determine how long an order remains active.
+///
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/#validity) for details.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum Validity {
+    /// Day order - Valid until the end of the trading day
     Day,
+    /// Immediate or Cancel (IOC) - Order is cancelled if not executed immediately
     Ioc,
+    /// Time to Live (TTL) - Order is valid for a specified number of minutes
     TTL,
 }
 
+/// Transaction type indicating whether to buy or sell.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum TransactionType {
+    /// Buy transaction - Purchase of securities
     Buy,
+    /// Sell transaction - Sale of securities
     Sell,
 }
 
-/// Read More: <https://zerodha.com/varsity/chapter/understanding-the-various-order-types/>
-// TODO: Some properties depend on variety, while some on OrderType. Have these type store that extra
-// metadata so it is easier to create correct request
+/// Request structure for placing a new order.
+///
+/// Different order varieties and types require different fields to be set.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/#place-order) for details.
+///
+/// Read more about order types: <https://zerodha.com/varsity/chapter/understanding-the-various-order-types/>
+///
+/// # Note
+///
+/// Some properties depend on the order variety, while others depend on the order type.
+/// Ensure you set the appropriate fields based on your order configuration.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PlaceOrderRequest {
     #[serde(skip_serializing)]
@@ -162,37 +196,63 @@ pub struct PlaceOrderRequest {
 
 // TODO: Add utility functions to create order
 
+/// Request structure for modifying a regular order.
+///
+/// Only the fields that need to be changed should be set. All fields are optional.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/#modify-order) for details.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ModifyRegularOrderRequest {
+    /// New order type (if changing)
     pub order_type: Option<OrderType>,
+    /// New quantity (if changing)
     pub quantity: Option<u32>,
+    /// New price (if changing, required for LIMIT orders)
     pub price: Option<f64>,
+    /// New trigger price (if changing, required for SL and SL-M orders)
     pub trigger_price: Option<f64>,
+    /// New disclosed quantity (if changing)
     pub disclosed_quantity: Option<u32>,
+    /// New validity (if changing)
     pub validity: Option<Validity>,
 }
 
+/// Request structure for modifying a cover order.
+///
+/// Cover orders can only have their price and trigger price modified.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/#modify-cover-order) for details.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ModifyCoverOrderRequest {
-    /// Unique order ID
+    /// Unique order ID (optional, can be specified in the API call URL instead)
     pub order_id: Option<String>,
-    /// The price to execute the order at
+    /// The price to execute the order at (for LIMIT cover orders)
     pub price: Option<f64>,
-    /// For LIMIT Cover orders
+    /// The trigger price for the stop-loss (for LIMIT cover orders)
     pub trigger_price: Option<f64>,
 }
 
+/// Order status indicating the current state of an order.
+///
+/// Orders can be in various states throughout their lifecycle.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum OrderStatus {
+    /// Order is open and pending execution
     Open,
+    /// Order has been cancelled
     Cancelled,
+    /// Order was rejected by the exchange or broker
     Rejected,
+    /// Order has been completely filled
     Complete,
+    /// Other status values that may be returned by the API
     #[serde(untagged)]
     Other(String),
 }
 
+/// Represents an order in the system.
+///
+/// This structure contains all information about an order including its status, execution details,
+/// and metadata. Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/#order-structure) for details.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Order {
     /// Unique order ID
@@ -273,6 +333,51 @@ struct Data {
 }
 
 impl KiteConnect<Authenticated> {
+    /// Places a new order.
+    ///
+    /// This method places an order and returns immediately without waiting for the order ID.
+    /// Use [`place_order_poll`](Self::place_order_poll) if you need the order ID.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/#place-order) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `req` - The order request containing all order details
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` if the order was placed successfully
+    /// * `Err(Error)` if the order placement failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::{KiteConnect, orders::*};
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let order = PlaceOrderRequest {
+    ///     variety: Variety::Regular,
+    ///     trading_symbol: "INFY".to_string(),
+    ///     exchange: Exchange::NSE,
+    ///     transaction_type: TransactionType::Buy,
+    ///     order_type: OrderType::Market,
+    ///     quantity: 1,
+    ///     product: Product::MIS,
+    ///     price: None,
+    ///     trigger_price: None,
+    ///     disclosed_quantity: None,
+    ///     validity: Validity::Day,
+    ///     validity_ttl: None,
+    ///     iceberg_legs: None,
+    ///     iceberg_quantity: None,
+    ///     auction_number: None,
+    ///     tag: None,
+    /// };
+    ///
+    /// kite.place_order(&order).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn place_order(&self, req: &PlaceOrderRequest) -> Result<(), Error> {
         let endpoint = place_order_endpoint_url_impl(&req.variety);
 
@@ -297,6 +402,34 @@ impl KiteConnect<Authenticated> {
         Ok(())
     }
 
+    /// Places a new order and returns the order ID.
+    ///
+    /// This method places an order and waits for the response to get the order ID.
+    /// Use [`place_order`](Self::place_order) if you don't need the order ID immediately.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/#place-order) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `req` - The order request containing all order details
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(order_id)` if the order was placed successfully, containing the order ID
+    /// * `Err(Error)` if the order placement failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::{KiteConnect, orders::*};
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// # let order = PlaceOrderRequest { /* ... */ };
+    /// let order_id = kite.place_order_poll(&order).await?;
+    /// println!("Order placed with ID: {}", order_id);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn place_order_poll(&self, req: &PlaceOrderRequest) -> Result<String, Error> {
         let endpoint = place_order_endpoint_url_impl(&req.variety);
 
@@ -312,6 +445,39 @@ impl KiteConnect<Authenticated> {
             .order_id)
     }
 
+    /// Modifies a regular order.
+    ///
+    /// This method allows you to modify certain parameters of an existing regular order.
+    /// Only the fields that need to be changed should be set in the request.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/#modify-order) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `order_id` - The unique order ID of the order to modify
+    /// * `req` - The modification request containing the fields to change
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` if the order was modified successfully
+    /// * `Err(Error)` if the modification failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::{KiteConnect, orders::*};
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let modify_req = ModifyRegularOrderRequest {
+    ///     price: Some(1500.0),
+    ///     quantity: Some(2),
+    ///     ..Default::default()
+    /// };
+    ///
+    /// kite.modify_regular_oder("order_id", &modify_req).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn modify_regular_oder(
         &self,
         order_id: &str,
@@ -330,6 +496,38 @@ impl KiteConnect<Authenticated> {
         Ok(())
     }
 
+    /// Modifies a cover order.
+    ///
+    /// This method allows you to modify the price and trigger price of an existing cover order.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/#modify-cover-order) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `order_id` - The unique order ID of the cover order to modify
+    /// * `req` - The modification request containing the new price and/or trigger price
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` if the order was modified successfully
+    /// * `Err(Error)` if the modification failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::{KiteConnect, orders::*};
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let modify_req = ModifyCoverOrderRequest {
+    ///     price: Some(1500.0),
+    ///     trigger_price: Some(1480.0),
+    ///     order_id: None,
+    /// };
+    ///
+    /// kite.modify_cover_order("order_id", &modify_req).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn modify_cover_order(
         &self,
         order_id: &str,
@@ -348,6 +546,33 @@ impl KiteConnect<Authenticated> {
         Ok(())
     }
 
+    /// Cancels an order.
+    ///
+    /// This method cancels an existing order. The order variety must be specified to route
+    /// the cancellation request to the correct endpoint.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/#cancel-order) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `order_id` - The unique order ID of the order to cancel
+    /// * `variety` - The variety of the order (Regular, AMO, CO, IceBerg, or Auction)
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` if the order was cancelled successfully
+    /// * `Err(Error)` if the cancellation failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::{KiteConnect, orders::*};
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// kite.cancel_order("order_id", &Variety::Regular).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn cancel_order(&self, order_id: &str, variety: &Variety) -> Result<(), Error> {
         let endpoint = cancel_order_endpoint_url_impl(variety);
 
@@ -362,6 +587,33 @@ impl KiteConnect<Authenticated> {
         Ok(())
     }
 
+    /// Retrieves all orders for the authenticated user.
+    ///
+    /// This method fetches all orders (open, completed, cancelled, etc.) for the user.
+    /// The response includes orders from all exchanges and all order varieties.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/orders/#get-orders) for details.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Order)` containing the order information
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Note
+    ///
+    /// The return type appears to be incorrect in the current implementation.
+    /// It should return `Vec<Order>` based on the API response structure.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let orders = kite.get_orders().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_orders(&self) -> Result<Order, Error> {
         Ok(self
             .client

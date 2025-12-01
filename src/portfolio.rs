@@ -10,6 +10,12 @@ pub const GET_HOLDINGS_AUCTION_ENDPOINT: &str =
     "https://api.kite.trade/portfolio/holdings/auctions";
 pub const GET_PUT_POSITIONS_ENDPOINT: &str = "https://api.kite.trade/portfolio/positions";
 
+/// Represents a holding (stock or security) in the user's portfolio.
+///
+/// Holdings are long-term positions that the user owns. This includes stocks purchased
+/// for delivery (CNC product) and other securities held in the demat account.
+///
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#holdings) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Holding {
     #[serde(rename = "tradingsymbol")]
@@ -41,6 +47,10 @@ pub struct Holding {
     pub short_quantity: i64,
 }
 
+/// Represents a holding that is part of an auction.
+///
+/// Auction holdings are securities that are being auctioned by the exchange.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#auction-holdings) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct HoldingAuction {
     #[serde(rename = "tradingsymbol")]
@@ -68,6 +78,12 @@ pub struct HoldingAuction {
     pub auction_number: String,
 }
 
+/// Represents a trading position (open position in futures, options, or intraday trades).
+///
+/// Positions are different from holdings - they represent active trading positions that may be
+/// squared off during the day or carried forward. Positions can be net (overall) or day (intraday).
+///
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#positions) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Position {
     #[serde(rename = "tradingsymbol")]
@@ -102,13 +118,26 @@ pub struct Position {
     pub day_sell_value: f64,
 }
 
-// TODO: Find a better name
+/// Container for both net and day positions.
+///
+/// Net positions represent the overall position (including overnight positions),
+/// while day positions represent only intraday positions.
+///
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#positions) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Positions {
+    /// Net positions (overall positions including overnight)
     pub net: Vec<Position>,
+    /// Day positions (intraday positions only)
     pub day: Vec<Position>,
 }
 
+/// Request structure for converting a position from one product type to another.
+///
+/// Position conversion allows you to change the product type of an existing position,
+/// for example, converting an MIS position to NRML to carry it forward.
+///
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#convert-position) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct ConvertPositionReq {
     #[serde(rename = "tradingsymbol")]
@@ -121,15 +150,43 @@ pub struct ConvertPositionReq {
     pub new_product: Product,
 }
 
+/// Type of position for conversion operations.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum PositionType {
+    /// Day position - Intraday position
     #[serde(rename = "day")]
     Day,
+    /// Overnight position - Position carried forward
     #[serde(rename = "overnight")]
     OverNight,
 }
 
 impl KiteConnect<Authenticated> {
+    /// Retrieves all holdings in the user's portfolio.
+    ///
+    /// Holdings are long-term positions (stocks, securities) held in the demat account.
+    /// This includes stocks purchased for delivery and other securities.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#holdings) for details.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Vec<Holding>)` containing all holdings
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let holdings = kite.get_holdings().await?;
+    /// for holding in &holdings {
+    ///     println!("{}: {} shares", holding.trading_symbol, holding.quantity);
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_holdings(&self) -> Result<Vec<Holding>, Error> {
         Ok(self
             .client
@@ -141,6 +198,27 @@ impl KiteConnect<Authenticated> {
             .into_result()?)
     }
 
+    /// Retrieves all holdings that are part of an auction.
+    ///
+    /// Auction holdings are securities that are being auctioned by the exchange.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#auction-holdings) for details.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Vec<HoldingAuction>)` containing all auction holdings
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let auction_holdings = kite.get_holdings_auction().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_holdings_auction(&self) -> Result<Vec<HoldingAuction>, Error> {
         Ok(self
             .client
@@ -152,6 +230,30 @@ impl KiteConnect<Authenticated> {
             .into_result()?)
     }
 
+    /// Retrieves all trading positions (both net and day positions).
+    ///
+    /// Positions represent active trading positions in futures, options, or intraday trades.
+    /// Net positions include overnight positions, while day positions are intraday only.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#positions) for details.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Positions)` containing both net and day positions
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let positions = kite.get_positions().await?;
+    /// println!("Net positions: {}", positions.net.len());
+    /// println!("Day positions: {}", positions.day.len());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_positions(&self) -> Result<Positions, Error> {
         Ok(self
             .client
@@ -163,6 +265,42 @@ impl KiteConnect<Authenticated> {
             .into_result()?)
     }
 
+    /// Converts a position from one product type to another.
+    ///
+    /// This allows you to change the product type of an existing position, for example,
+    /// converting an MIS (intraday) position to NRML (carry forward) to hold it overnight.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#convert-position) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `req` - The conversion request containing position details and target product
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(true)` if the position was converted successfully
+    /// * `Err(Error)` if the conversion failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::{KiteConnect, portfolio::*, orders::*};
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let convert_req = ConvertPositionReq {
+    ///     trading_symbol: "INFY".to_string(),
+    ///     exchange: Exchange::NSE,
+    ///     transaction_type: TransactionType::Buy,
+    ///     position_type: PositionType::Day,
+    ///     quantity: 1,
+    ///     old_product: Product::MIS,
+    ///     new_product: Product::NRML,
+    /// };
+    ///
+    /// kite.convert_position(&convert_req).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn convert_position(&self, req: &ConvertPositionReq) -> Result<bool, Error> {
         Ok(self
             .client
@@ -175,9 +313,15 @@ impl KiteConnect<Authenticated> {
             .into_result()?)
     }
 
-    /// Unimplemented
+    /// Authorizes holdings for trading.
     ///
-    /// Refer <https://kite.trade/docs/connect/v3/portfolio/#holdings-authorisation>
+    /// This method is currently unimplemented.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/portfolio/#holdings-authorisation) for details.
+    ///
+    /// # Returns
+    ///
+    /// This method will panic with `unimplemented!()` if called.
     pub async fn authorise_holdings(&self) -> Result<(), Error> {
         unimplemented!()
     }

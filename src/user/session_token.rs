@@ -3,6 +3,13 @@ use crate::orders::{Exchange, OrderType, Product};
 
 pub const SESSION_TOKEN_ENDPOINT: &str = "https://api.kite.trade/session/token";
 
+/// Session token response containing user information and authentication tokens.
+///
+/// This structure is returned after successful authentication and contains all necessary
+/// information about the user session, including access tokens, user details, and enabled
+/// features (exchanges, products, order types).
+///
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/user/#session-token) for details.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(default)]
 pub struct SessionToken {
@@ -45,6 +52,33 @@ pub struct SessionToken {
 }
 
 impl KiteConnect<AuthPending> {
+    /// Generates a session token by exchanging a request token for an access token.
+    ///
+    /// This method is called internally by [`authenticate_with_request_token`](crate::KiteConnect::authenticate_with_request_token).
+    /// It performs the OAuth token exchange and returns the session information.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/user/#session-token) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `request_token` - The request token obtained from the OAuth login flow
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(SessionToken)` containing user information and access tokens
+    /// * `Err(Error)` if authentication failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite = KiteConnect::new("api_key".to_string(), "api_secret".to_string());
+    /// let session = kite.generate_session_token("request_token").await?;
+    /// println!("User: {}", session.user_name);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn generate_session_token(&self, request_token: &str) -> Result<SessionToken, Error> {
         #[derive(Serialize)]
         struct SessionTokenRequest<'a> {

@@ -5,6 +5,10 @@ use crate::{
 
 pub const USER_PROFILE_ENDPOINT: &str = "https://api.kite.trade/user/profile";
 
+/// User profile information.
+///
+/// Contains user details, enabled exchanges, products, order types, and other account information.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/user/#profile) for details.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(default)]
 pub struct UserProfile {
@@ -34,6 +38,30 @@ pub struct UserProfile {
 }
 
 impl KiteConnect<Authenticated> {
+    /// Retrieves the user's profile information.
+    ///
+    /// This method returns comprehensive user information including user ID, name, email,
+    /// enabled exchanges, products, order types, and other account details.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/user/#profile) for details.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(UserProfile)` containing user profile information
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let profile = kite.get_user_profile().await?;
+    /// println!("User: {} ({})", profile.user_name, profile.user_id);
+    /// println!("Enabled exchanges: {:?}", profile.exchanges);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_user_profile(&self) -> Result<UserProfile, Error> {
         Ok(self
             .client

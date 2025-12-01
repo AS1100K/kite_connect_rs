@@ -15,11 +15,20 @@ use super::*;
 
 pub const KITE_WEB_SOCKET_ENDPOINT: &str = "wss://ws.kite.trade/";
 
+/// WebSocket ticker for receiving real-time market data.
+///
+/// The ticker maintains a WebSocket connection to Kite's market data feed and provides
+/// methods to subscribe/unsubscribe to instruments and change subscription modes.
+///
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/websocket/) for details.
 pub struct KiteTicker {
     handle: JoinHandle<()>,
     write_stream: SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>,
 }
 
+/// Types of ticker messages received from the WebSocket feed.
+///
+/// The ticker can send various types of market data updates depending on the subscription mode.
 #[derive(Debug, PartialEq, Clone)]
 pub enum Ticker {
     ConnectionClosed,
@@ -29,6 +38,9 @@ pub enum Ticker {
     FullQuote(FullQuote),
 }
 
+/// Partial quote containing basic market data without depth information.
+///
+/// This is returned when subscribed in "quote" mode.
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct PartialQuote {
     pub instrument_token: u32,
@@ -41,6 +53,9 @@ pub struct PartialQuote {
     pub ohlc: Ohlc,
 }
 
+/// Full quote containing comprehensive market data including depth information.
+///
+/// This is returned when subscribed in "full" mode.
 #[derive(Debug, PartialEq, Clone)]
 pub struct FullQuote {
     pub quote: PartialQuote,
@@ -52,6 +67,7 @@ pub struct FullQuote {
     pub depth: DepthBook,
 }
 
+/// WebSocket request types for managing subscriptions.
 pub enum Req<'a> {
     Subscribe(&'a [u32]),
     Unsubscribe(&'a [u32]),
@@ -61,6 +77,9 @@ pub enum Req<'a> {
     },
 }
 
+/// Subscription mode for WebSocket ticker.
+///
+/// Different modes provide different levels of market data detail.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum ReqMode {
@@ -70,6 +89,37 @@ pub enum ReqMode {
 }
 
 impl KiteTicker {
+    /// Sends a subscription request to the WebSocket ticker.
+    ///
+    /// This method allows you to subscribe/unsubscribe to instruments or change subscription modes.
+    ///
+    /// # Arguments
+    ///
+    /// * `req` - The request to send (Subscribe, Unsubscribe, or Mode change)
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` if the request was sent successfully
+    /// * `Err(Error)` if sending failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::{KiteConnect, ws::*};
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// # let (mut ticker, _rx) = kite.web_socket().await?;
+    /// // Subscribe to instruments
+    /// ticker.send(Req::Subscribe(&[408065, 408129])).await?;
+    ///
+    /// // Change to full mode
+    /// ticker.send(Req::Mode {
+    ///     mode: ReqMode::Full,
+    ///     instrument_tokens: &[408065],
+    /// }).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn send(&mut self, req: Req<'_>) -> Result<(), Error> {
         let msg = match req {
             Req::Subscribe(instrument_tokens) => Message::Text(
@@ -104,17 +154,70 @@ impl KiteTicker {
         self.send_raw(msg).await
     }
 
+    /// Sends a raw WebSocket message to the ticker.
+    ///
+    /// This method allows you to send custom messages directly to the WebSocket connection.
+    /// Use this only if you need functionality not provided by the `send` method.
+    ///
+    /// # Arguments
+    ///
+    /// * `req` - The raw WebSocket message to send
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` if the message was sent successfully
+    /// * `Err(Error)` if sending failed
     pub async fn send_raw(&mut self, req: Message) -> Result<(), Error> {
         self.write_stream.send(req).await?;
         Ok(())
     }
 
+    /// Waits for the WebSocket connection handle to complete.
+    ///
+    /// This method consumes the ticker and waits for the background task handling
+    /// incoming messages to finish. This is useful for cleanup or graceful shutdown.
     pub async fn wait_handle(self) {
         let _ = self.handle.await;
     }
 }
 
 impl KiteConnect<Authenticated> {
+    /// Establishes a WebSocket connection for real-time market data.
+    ///
+    /// This method creates a WebSocket connection to Kite's market data feed and returns
+    /// a ticker for managing subscriptions and a receiver channel for receiving market data.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/websocket/) for details.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok((KiteTicker, Receiver<Ticker>))` - A tuple containing the ticker for sending requests
+    ///   and a receiver channel for receiving market data updates
+    /// * `Err(Error)` if the connection failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::{KiteConnect, ws::*};
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let (mut ticker, rx) = kite.web_socket().await?;
+    ///
+    /// // Subscribe to instruments
+    /// ticker.send(Req::Subscribe(&[408065])).await?;
+    ///
+    /// // Receive market data
+    /// while let Ok(tick) = rx.recv() {
+    ///     match tick {
+    ///         Ticker::LtpQuote(quote) => println!("LTP: {}", quote.last_price),
+    ///         Ticker::FullQuote(quote) => println!("Full quote: {:?}", quote),
+    ///         Ticker::ConnectionClosed => break,
+    ///         _ => {}
+    ///     }
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn web_socket(&self) -> Result<(KiteTicker, Receiver<Ticker>), Error> {
         let endpoint = format!(
             "{KITE_WEB_SOCKET_ENDPOINT}?api_key={}&access_token={}",

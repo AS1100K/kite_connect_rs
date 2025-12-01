@@ -9,17 +9,23 @@ pub mod session_token;
 
 pub const LOGIN_ENDPOINT: &str = "https://kite.zerodha.com/connect/login?v=3&api_key=";
 
+/// User metadata containing additional account information.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct UserMetaData {
+    /// Demat consent status
     pub demat_consent: DematConsent,
 }
 
+/// Demat consent status indicating the type of demat account consent.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum DematConsent {
+    /// No consent specified
     #[default]
     Empty,
+    /// Consent given
     Consent,
+    /// Physical delivery consent
     Physical,
 }
 

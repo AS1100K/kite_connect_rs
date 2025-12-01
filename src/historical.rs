@@ -8,6 +8,10 @@ pub const GET_HISTORICAL_CANDLE_ENDPOINT: &str = "https://api.kite.trade/instrum
 /// The format string used for candle timestamps.
 pub const CANDLE_TIMESTAMP_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%z";
 
+/// Time interval for historical candle data.
+///
+/// Different intervals are available for different types of analysis.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/historical/) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum Interval {
@@ -42,6 +46,10 @@ impl Display for Interval {
     }
 }
 
+/// Request structure for fetching historical candle data.
+///
+/// Historical data is available for various time intervals and date ranges.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/historical/) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct HistoricalCandleReq {
     /// `yyyy-mm-dd hh:mm:ss` formatted date indicating the start date of records
@@ -54,6 +62,10 @@ pub struct HistoricalCandleReq {
     pub oi: bool,
 }
 
+/// Represents a single candle (OHLCV data point) in historical data.
+///
+/// A candle contains the open, high, low, close prices and volume for a specific time period.
+/// For F&O instruments, it may also include open interest data.
 #[derive(Debug, Serialize, PartialEq, Clone)]
 pub struct Candle {
     pub timestamp: String,
@@ -107,6 +119,42 @@ impl<'de> Deserialize<'de> for Candle {
 }
 
 impl KiteConnect<Authenticated> {
+    /// Retrieves historical candle data for an instrument.
+    ///
+    /// This method fetches OHLCV (Open, High, Low, Close, Volume) data for a specified
+    /// instrument, time interval, and date range. For F&O instruments, open interest data
+    /// is also included if requested.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/historical/) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `instrument_token` - The instrument token for which to fetch historical data
+    /// * `interval` - The time interval for candles (minute, 3minute, 5minute, etc.)
+    /// * `req` - The request containing date range and other parameters
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Vec<Candle>)` containing historical candle data
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::{KiteConnect, historical::*};
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let req = HistoricalCandleReq {
+    ///     from: "2023-01-01 09:15:00".to_string(),
+    ///     to: "2023-01-01 15:30:00".to_string(),
+    ///     continuous: false,
+    ///     oi: false,
+    /// };
+    ///
+    /// let candles = kite.get_historical_data(408065, Interval::Minute, req).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_historical_data(
         &self,
         instrument_token: u32,
