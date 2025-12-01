@@ -1,8 +1,12 @@
 [package]
 name = "kite_connect"
+description = "A Rust client for communicating with the Kite Connect API"
 version = "0.1.0"
 edition = "2024"
 authors = ["Aditya Kumar <git@adityais.dev>"]
+license = "MIT"
+keywords = ["api-bindings", "web-programming::http-client"]
+repository = "https://github.com/as1100k/kite_connect_rs"
 
 [features]
 auto_auth = ["tokio/net"]
@@ -24,14 +28,21 @@ byteorder = "1.5"
 [dev-dependencies]
 ratatui = "0.29"
 
+[package.metadata.docs.rs]
+all-features = true
+cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
+
 [[example]]
 name = "basic_auth"
 required-features = ["auto_auth", "tokio/rt", "tokio/macros"]
+doc-scrape-examples = true
 
 [[example]]
 name = "ws"
 required-features = ["auto_auth", "tokio/rt-multi-thread", "tokio/macros"]
+doc-scrape-examples = true
 
 [[example]]
 name = "watch_list"
 required-features = ["auto_auth", "tokio/rt-multi-thread", "tokio/macros"]
+doc-scrape-examples = true
