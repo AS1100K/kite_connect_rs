@@ -424,7 +424,24 @@ impl KiteConnect<Authenticated> {
     /// # use kite_connect::{KiteConnect, orders::*};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
     /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
-    /// # let order = PlaceOrderRequest { /* ... */ };
+    /// # let order = PlaceOrderRequest {
+    /// #     variety: Variety::Regular,
+    /// #     trading_symbol: "INFY".to_string(),
+    /// #     exchange: Exchange::NSE,
+    /// #     transaction_type: TransactionType::Buy,
+    /// #     order_type: OrderType::Market,
+    /// #     quantity: 1,
+    /// #     product: Product::MIS,
+    /// #     price: None,
+    /// #     trigger_price: None,
+    /// #     disclosed_quantity: None,
+    /// #     validity: Validity::Day,
+    /// #     validity_ttl: None,
+    /// #     iceberg_legs: None,
+    /// #     iceberg_quantity: None,
+    /// #     auction_number: None,
+    /// #     tag: None,
+    /// # };
     /// let order_id = kite.place_order_poll(&order).await?;
     /// println!("Order placed with ID: {}", order_id);
     /// # Ok(())
@@ -471,7 +488,10 @@ impl KiteConnect<Authenticated> {
     /// let modify_req = ModifyRegularOrderRequest {
     ///     price: Some(1500.0),
     ///     quantity: Some(2),
-    ///     ..Default::default()
+    ///     order_type: None,
+    ///     trigger_price: None,
+    ///     disclosed_quantity: None,
+    ///     validity: None,
     /// };
     ///
     /// kite.modify_regular_oder("order_id", &modify_req).await?;
