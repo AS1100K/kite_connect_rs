@@ -83,8 +83,8 @@ pub fn get_virtual_contract_note(order: &OrderReq) -> VirtualContractNote {
                 sebi_charges,
                 stamp_charges,
                 net_charges,
-                net_pnl,
                 pnl,
+                net_pnl,
             }
         }
         _ => unimplemented!(),
