@@ -12,7 +12,7 @@ repository = "https://github.com/as1100k/kite_connect_rs"
 auto_auth = ["tokio/net"]
 
 [dependencies]
-reqwest = { version = "0.13", features = ["json"] }
+reqwest = { version = "0.13", features = ["json", "query", "form"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = "1.46"
