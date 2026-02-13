@@ -4,36 +4,67 @@ use std::collections::HashMap;
 
 use super::*;
 
+/// API endpoint for retrieving all instruments.
 pub const GET_INSTRUMENTS_ENDPOINT: &str = "https://api.kite.trade/instruments";
+/// API endpoint for retrieving full market quotes.
 pub const GET_FULL_MARKET_QUOTES: &str = "https://api.kite.trade/quote";
+/// API endpoint for retrieving OHLC quotes.
 pub const GET_OHLC_QUOTES: &str = "https://api.kite.trade/quote/ohlc";
+/// API endpoint for retrieving LTP (Last Traded Price) quotes.
 pub const GET_LTP_QUOTES: &str = "https://api.kite.trade/quote/ltp";
 
+/// Represents a financial instrument (stock, futures, options, etc.) available for trading.
+///
+/// Instruments are identified by their trading symbol and exchange, and have various properties
+/// like lot size, tick size, expiry (for derivatives), etc.
+///
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/market-quotes/#instruments) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Instrument {
+    /// Numerical identifier issued by the exchange representing the instrument
     pub instrument_token: u32,
+    /// Exchange-specific token identifier
     pub exchange_token: String,
+    /// Trading symbol of the instrument
     #[serde(rename = "tradingsymbol")]
     pub trading_symbol: String,
+    /// Full name of the instrument
     pub name: String,
+    /// Last traded price of the instrument
     pub last_price: f64,
+    /// Expiry date for derivatives (format: YYYY-MM-DD)
     pub expiry: String,
+    /// Strike price for options (0 for non-options)
     pub strike: f64,
+    /// Minimum price movement allowed for the instrument
     pub tick_size: f64,
+    /// Lot size (number of units in one lot)
     pub lot_size: i64,
+    /// Type of instrument (EQ, FUT, CE, PE)
     pub instrument_type: InstrumentType,
+    /// Trading segment
     pub segment: String,
+    /// Exchange name
     pub exchange: String,
 }
 
+/// Type of financial instrument.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum InstrumentType {
+    /// Equity - Stocks and shares
     EQ,
+    /// Futures - Futures contracts
     FUT,
+    /// Call Option - Call options
     CE,
+    /// Put Option - Put options
     PE,
 }
 
+/// Full market quote containing comprehensive market data for an instrument.
+///
+/// This includes price data, volume, open interest, market depth, and more.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/market-quotes/#full-market-quote) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Quote {
     /// The numerical identifier issued by the exchange representing the instrument.
@@ -57,6 +88,7 @@ pub struct Quote {
     pub open_interest: Option<f64>,
     /// Last traded quantity
     pub last_quantity: i64,
+    /// OHLC (Open, High, Low, Close) price data
     pub ohlc: Ohlc,
     /// The absolute change from yesterday's close to last traded price
     pub net_change: f64,
@@ -70,18 +102,28 @@ pub struct Quote {
     pub oi_day_high: f64,
     /// The lowest Open Interest recorded during the day
     pub oi_day_low: f64,
+    /// Market depth (order book) showing buy and sell orders at different price levels
     pub depth: DepthBook,
 }
 
+/// OHLC (Open, High, Low, Close) quote with last traded price.
+///
+/// This is a lightweight quote structure containing only price data.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/market-quotes/#ohlc-quote) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 pub struct OhlcQuote {
     /// The numerical identifier issued by the exchange representing the instrument.
     pub instrument_token: u32,
     /// Last traded market price
     pub last_price: f64,
+    /// OHLC (Open, High, Low, Close) price data
     pub ohlc: Ohlc,
 }
 
+/// Last Traded Price (LTP) quote - the most basic quote containing only the last traded price.
+///
+/// This is the lightest quote format, useful when you only need the current price.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/market-quotes/#ltp-quote) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 pub struct LtpQuote {
     /// The numerical identifier issued by the exchange representing the instrument.
@@ -90,6 +132,7 @@ pub struct LtpQuote {
     pub last_price: f64,
 }
 
+/// OHLC (Open, High, Low, Close) price data for a trading period.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 pub struct Ohlc {
     /// Price at market opening
@@ -102,17 +145,29 @@ pub struct Ohlc {
     pub close: f64,
 }
 
+/// Market depth book containing buy and sell orders at different price levels.
+///
+/// The depth book shows pending orders in the order book, typically showing the top 5 levels
+/// on both buy and sell sides.
 #[derive(Default, Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct DepthBook {
+    /// Buy side depth (orders to buy)
     pub buy: Vec<Depth>,
+    /// Sell side depth (orders to sell)
     pub sell: Vec<Depth>,
 }
 
 impl DepthBook {
+    /// Creates a new empty `DepthBook`.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Creates a new `DepthBook` with the specified capacity for buy and sell depth vectors.
+    ///
+    /// # Arguments
+    ///
+    /// * `capacity` - Initial capacity for both buy and sell depth vectors
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             buy: Vec::with_capacity(capacity),
@@ -121,6 +176,7 @@ impl DepthBook {
     }
 }
 
+/// Market depth entry representing orders at a specific price level.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 pub struct Depth {
     /// Price at which the depth stands
@@ -132,7 +188,34 @@ pub struct Depth {
 }
 
 impl KiteConnect<Authenticated> {
-    // TODO: Optimize this function performance
+    /// Retrieves all instruments available for trading across all exchanges.
+    ///
+    /// This method downloads the complete instrument master file which can be large.
+    /// The response is in CSV format and is parsed into a vector of `Instrument` structs.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/market-quotes/#instruments) for details.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Vec<Instrument>)` containing all available instruments
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Performance
+    ///
+    /// This method has a 30-minute timeout due to the large file size.
+    /// Consider caching the results locally for better performance.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let instruments = kite.get_all_instruments().await?;
+    /// println!("Total instruments: {}", instruments.len());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_all_instruments(&self) -> Result<Vec<Instrument>, Error> {
         let bytes = self
             .client
@@ -157,6 +240,38 @@ impl KiteConnect<Authenticated> {
         Ok(instruments)
     }
 
+    /// Retrieves all instruments for a specific exchange.
+    ///
+    /// This method downloads the instrument master file for the specified exchange.
+    /// The response is in CSV format and is parsed into a vector of `Instrument` structs.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/market-quotes/#instruments) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `exchange` - The exchange for which to retrieve instruments
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Vec<Instrument>)` containing all instruments for the specified exchange
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Performance
+    ///
+    /// This method has a 30-minute timeout due to the potentially large file size.
+    /// Consider caching the results locally for better performance.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::{KiteConnect, orders::Exchange};
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let nse_instruments = kite.get_exhchange_instruments(Exchange::NSE).await?;
+    /// println!("NSE instruments: {}", nse_instruments.len());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_exhchange_instruments(
         &self,
         exchange: Exchange,
@@ -184,6 +299,35 @@ impl KiteConnect<Authenticated> {
         Ok(instruments)
     }
 
+    /// Retrieves full market quotes for the specified instruments.
+    ///
+    /// This method returns comprehensive market data including price, volume, open interest,
+    /// market depth, and more for each instrument.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/market-quotes/#full-market-quote) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `i` - A slice of instrument identifiers. Each identifier can be:
+    ///   - An `instrument_token` (u32)
+    ///   - A string in the format "EXCHANGE:TRADINGSYMBOL" (e.g., "NSE:INFY")
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(HashMap<String, Quote>)` - A map where keys are instrument identifiers and values are full quotes
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let instruments = ["NSE:INFY", "NSE:RELIANCE"];
+    /// let quotes = kite.get_market_quotes(&instruments).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_market_quotes<I: Serialize + Copy>(
         &self,
         i: &[I],
@@ -191,6 +335,35 @@ impl KiteConnect<Authenticated> {
         self.get_quotes_impl(i, GET_FULL_MARKET_QUOTES).await
     }
 
+    /// Retrieves OHLC quotes for the specified instruments.
+    ///
+    /// This method returns lightweight quotes containing only OHLC (Open, High, Low, Close) data
+    /// and the last traded price.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/market-quotes/#ohlc-quote) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `i` - A slice of instrument identifiers. Each identifier can be:
+    ///   - An `instrument_token` (u32)
+    ///   - A string in the format "EXCHANGE:TRADINGSYMBOL" (e.g., "NSE:INFY")
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(HashMap<String, OhlcQuote>)` - A map where keys are instrument identifiers and values are OHLC quotes
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let instruments = ["NSE:INFY"];
+    /// let quotes = kite.get_ohlc_quotes(&instruments).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_ohlc_quotes<I: Serialize + Copy>(
         &self,
         i: &[I],
@@ -198,6 +371,35 @@ impl KiteConnect<Authenticated> {
         self.get_quotes_impl(i, GET_OHLC_QUOTES).await
     }
 
+    /// Retrieves Last Traded Price (LTP) quotes for the specified instruments.
+    ///
+    /// This method returns the most basic quotes containing only the last traded price.
+    /// This is the lightest quote format and is useful when you only need current prices.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/market-quotes/#ltp-quote) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `i` - A slice of instrument identifiers. Each identifier can be:
+    ///   - An `instrument_token` (u32)
+    ///   - A string in the format "EXCHANGE:TRADINGSYMBOL" (e.g., "NSE:INFY")
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(LtpQuote)` - The LTP quote (Note: The return type appears incorrect; should be `HashMap<String, LtpQuote>`)
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let instruments = ["NSE:INFY"];
+    /// let quotes = kite.get_ltp_quotes(&instruments).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_ltp_quotes<I: Serialize + Copy>(&self, i: &[I]) -> Result<LtpQuote, Error> {
         self.get_quotes_impl(i, GET_LTP_QUOTES).await
     }
