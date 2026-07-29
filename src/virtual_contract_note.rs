@@ -2,28 +2,89 @@ use serde::{Deserialize, Serialize};
 
 use crate::orders::{Exchange, Product};
 
+/// Virtual contract note containing calculated charges and P&L for a trade.
+///
+/// This structure provides a breakdown of all charges (brokerage, STT, transaction charges,
+/// GST, etc.) and the net P&L for a trade. This is useful for calculating the actual cost
+/// and profit/loss of a trade.
+///
+/// Note: The calculations in this module are approximations and may not match the exact
+/// charges calculated by the broker. Always refer to the official contract note for
+/// accurate values.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct VirtualContractNote {
+    /// Brokerage charges
     pub brokerage: f64,
+    /// Securities Transaction Tax (STT)
     pub stt: f64,
+    /// Transaction charges (exchange charges)
     pub transaction_charges: f64,
+    /// Goods and Services Tax (GST) on brokerage and other charges
     pub gst: f64,
+    /// SEBI charges
     pub sebi_charges: f64,
+    /// Stamp duty charges
     pub stamp_charges: f64,
+    /// Total of all charges
     pub net_charges: f64,
+    /// Gross profit and loss (before charges)
     pub pnl: f64,
+    /// Net profit and loss (after all charges)
     pub net_pnl: f64,
 }
 
+/// Request structure for calculating virtual contract note charges.
+///
+/// This structure contains the trade details needed to calculate charges and P&L.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct OrderReq {
+    /// Exchange where the trade was executed
     pub exchange: Exchange,
+    /// Product type (CNC, MIS, etc.)
     pub product: Product,
+    /// Quantity traded
     pub quantity: i64,
+    /// Buy price per unit
     pub buy: f64,
+    /// Sell price per unit
     pub sell: f64,
 }
 
+/// Calculates virtual contract note charges and P&L for a trade.
+///
+/// This function calculates all applicable charges (brokerage, STT, transaction charges,
+/// GST, SEBI charges, stamp charges) and the net P&L for a given trade.
+///
+/// # Arguments
+///
+/// * `order` - The order request containing trade details (exchange, product, quantity, buy/sell prices)
+///
+/// # Returns
+///
+/// A `VirtualContractNote` containing all calculated charges and P&L.
+///
+/// # Note
+///
+/// - Currently supports only NSE and BSE equity trades
+/// - Supports CNC and MIS products only
+/// - Calculations are approximations and may not match exact broker charges
+/// - Always refer to the official contract note for accurate values
+///
+/// # Example
+///
+/// ```rust
+/// # use kite_connect::{virtual_contract_note::*, orders::*};
+/// let order = OrderReq {
+///     exchange: Exchange::NSE,
+///     product: Product::MIS,
+///     quantity: 100,
+///     buy: 1000.0,
+///     sell: 1100.0,
+/// };
+///
+/// let contract_note = get_virtual_contract_note(&order);
+/// println!("Net P&L: {}", contract_note.net_pnl);
+/// ```
 pub fn get_virtual_contract_note(order: &OrderReq) -> VirtualContractNote {
     match order.exchange {
         Exchange::NSE | Exchange::BSE => {

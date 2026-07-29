@@ -1,25 +1,44 @@
 use crate::user::*;
 
+/// API endpoint for retrieving total user margins (equity and commodity).
 pub const USER_FUNDS_ENDPOINT: &str = "https://api.kite.trade/user/margins";
+/// API endpoint for retrieving equity segment margins.
 pub const USER_EQUITY_FUNDS_ENDPOINT: &str = "https://api.kite.trade/user/margins/equity";
+/// API endpoint for retrieving commodity segment margins.
 pub const USER_COMMODITY_FUNDS_ENDPOINT: &str = "https://api.kite.trade/user/margins/commodity";
 
+/// Total funds information for both equity and commodity segments.
+///
+/// This structure contains margin information for both trading segments.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/user/#margins) for details.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct TotalFunds {
+    /// Equity segment funds information
     pub equity: SegmentFunds,
+    /// Commodity segment funds information
     pub commodity: SegmentFunds,
 }
 
+/// Funds information for a specific trading segment (equity or commodity).
+///
+/// Contains available funds, utilized funds, and net funds for the segment.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/user/#margins) for details.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct SegmentFunds {
     /// Indicates whether the segment is enabled for the user
     pub enabled: bool,
     /// Net cash balance available for trading (intraday_payin + adhoc_margin + collateral)
     pub net: f64,
+    /// Available funds breakdown
     pub available: AvailableFunds,
+    /// Utilized funds breakdown
     pub utilised: UtilisedFunds,
 }
 
+/// Available funds breakdown showing various sources of available margin.
+///
+/// This includes cash balance, opening balance, intraday payin, adhoc margin, and collateral.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/user/#margins) for details.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct AvailableFunds {
     /// Raw cash balance in the account available for trading (also includes `intraday_payin`)
@@ -36,6 +55,10 @@ pub struct AvailableFunds {
     pub collateral: f64,
 }
 
+/// Utilized funds breakdown showing how margins are being used.
+///
+/// This includes SPAN margin, exposure margin, M2M (mark-to-market) values, and other charges.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/user/#margins) for details.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct UtilisedFunds {
     /// Un-booked (open) intraday profits and losses
@@ -67,6 +90,30 @@ pub struct UtilisedFunds {
 }
 
 impl KiteConnect<Authenticated> {
+    /// Retrieves total margin information for both equity and commodity segments.
+    ///
+    /// This method returns comprehensive margin information including available funds,
+    /// utilized funds, and net funds for both trading segments.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/user/#margins) for details.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(TotalFunds)` containing margin information for both segments
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let funds = kite.get_funds().await?;
+    /// println!("Equity net: {}", funds.equity.net);
+    /// println!("Commodity net: {}", funds.commodity.net);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_funds(&self) -> Result<TotalFunds, Error> {
         Ok(self
             .client
@@ -78,6 +125,28 @@ impl KiteConnect<Authenticated> {
             .into_result()?)
     }
 
+    /// Retrieves margin information for the equity segment only.
+    ///
+    /// This method returns margin information specifically for equity trading.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/user/#margins) for details.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(SegmentFunds)` containing equity margin information
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let equity_funds = kite.get_equity_funds().await?;
+    /// println!("Available: {}", equity_funds.available.cash);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_equity_funds(&self) -> Result<SegmentFunds, Error> {
         Ok(self
             .client
@@ -89,6 +158,28 @@ impl KiteConnect<Authenticated> {
             .into_result()?)
     }
 
+    /// Retrieves margin information for the commodity segment only.
+    ///
+    /// This method returns margin information specifically for commodity trading.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/user/#margins) for details.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(SegmentFunds)` containing commodity margin information
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::KiteConnect;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let commodity_funds = kite.get_commodity_funds().await?;
+    /// println!("Available: {}", commodity_funds.available.cash);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_commodity_funds(&self) -> Result<SegmentFunds, Error> {
         Ok(self
             .client

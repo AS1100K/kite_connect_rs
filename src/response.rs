@@ -11,9 +11,17 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "status")]
 pub enum Response<T> {
     /// Success response containing the data.
-    Success { data: T },
+    Success {
+        /// Response data
+        data: T,
+    },
     /// Error response containing an error message and error type.
-    Error { message: String, error_type: String },
+    Error {
+        /// Error message
+        message: String,
+        /// Error type
+        error_type: String,
+    },
 }
 
 impl<T> Response<T> {

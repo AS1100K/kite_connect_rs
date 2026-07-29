@@ -1,6 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display};
 
+/// Error types returned by the Kite Connect API.
+///
+/// This enum represents all possible error types that can be returned by the Kite API.
+/// Each variant contains an error message string describing the specific error.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum KiteError {
     /// Preceded by a 403 header, this indicates the expiry or invalidation of an authenticated session.

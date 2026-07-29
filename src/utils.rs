@@ -13,7 +13,9 @@ use serde::{Deserialize, Deserializer};
 /// value before initializing [KiteConnect](super::KiteConnect).
 pub static mut REQUEST_TIMEOUT_SECS: u64 = 1;
 
+/// Kite Connect API version number.
 pub const API_VERSION: u8 = 3;
+/// Kite Connect API version string.
 pub const API_VERSION_STR: &str = "3";
 
 pub static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));

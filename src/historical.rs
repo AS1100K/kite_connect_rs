@@ -3,26 +3,39 @@ use std::fmt::Display;
 
 use super::*;
 
+/// API endpoint for fetching historical candle data.
 pub const GET_HISTORICAL_CANDLE_ENDPOINT: &str = "https://api.kite.trade/instruments/historical/";
 
 /// The format string used for candle timestamps.
 pub const CANDLE_TIMESTAMP_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%z";
 
+/// Time interval for historical candle data.
+///
+/// Different intervals are available for different types of analysis.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/historical/) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum Interval {
+    /// 1-minute interval
     Minute,
+    /// Daily interval
     Day,
+    /// 3-minute interval
     #[serde(rename = "3minute")]
     ThreeMinute,
+    /// 5-minute interval
     #[serde(rename = "5minute")]
     FiveMinute,
+    /// 10-minute interval
     #[serde(rename = "10minute")]
     TenMinute,
+    /// 15-minute interval
     #[serde(rename = "15minute")]
     FifteenMinute,
+    /// 30-minute interval
     #[serde(rename = "30minute")]
     ThirtyMinute,
+    /// 60-minute (1-hour) interval
     #[serde(rename = "60minute")]
     SixtyMinute,
 }
@@ -42,6 +55,10 @@ impl Display for Interval {
     }
 }
 
+/// Request structure for fetching historical candle data.
+///
+/// Historical data is available for various time intervals and date ranges.
+/// Refer to the [official documentation](https://kite.trade/docs/connect/v3/historical/) for details.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct HistoricalCandleReq {
     /// `yyyy-mm-dd hh:mm:ss` formatted date indicating the start date of records
@@ -54,14 +71,25 @@ pub struct HistoricalCandleReq {
     pub oi: bool,
 }
 
+/// Represents a single candle (OHLCV data point) in historical data.
+///
+/// A candle contains the open, high, low, close prices and volume for a specific time period.
+/// For F&O instruments, it may also include open interest data.
 #[derive(Debug, Serialize, PartialEq, Clone)]
 pub struct Candle {
+    /// Timestamp of the candle in ISO 8601 format
     pub timestamp: String,
+    /// Opening price of the candle
     pub open: f64,
+    /// Highest price during the candle period
     pub high: f64,
+    /// Lowest price during the candle period
     pub low: f64,
+    /// Closing price of the candle
     pub close: f64,
+    /// Volume traded during the candle period
     pub volume: i64,
+    /// Open interest (only for F&O instruments)
     pub oi: Option<i64>,
 }
 
@@ -107,6 +135,42 @@ impl<'de> Deserialize<'de> for Candle {
 }
 
 impl KiteConnect<Authenticated> {
+    /// Retrieves historical candle data for an instrument.
+    ///
+    /// This method fetches OHLCV (Open, High, Low, Close, Volume) data for a specified
+    /// instrument, time interval, and date range. For F&O instruments, open interest data
+    /// is also included if requested.
+    ///
+    /// Refer to the [official documentation](https://kite.trade/docs/connect/v3/historical/) for details.
+    ///
+    /// # Arguments
+    ///
+    /// * `instrument_token` - The instrument token for which to fetch historical data
+    /// * `interval` - The time interval for candles (minute, 3minute, 5minute, etc.)
+    /// * `req` - The request containing date range and other parameters
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Vec<Candle>)` containing historical candle data
+    /// * `Err(Error)` if the request failed
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use kite_connect::{KiteConnect, historical::*};
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let kite: KiteConnect<kite_connect::Authenticated> = todo!();
+    /// let req = HistoricalCandleReq {
+    ///     from: "2023-01-01 09:15:00".to_string(),
+    ///     to: "2023-01-01 15:30:00".to_string(),
+    ///     continuous: false,
+    ///     oi: false,
+    /// };
+    ///
+    /// let candles = kite.get_historical_data(408065, Interval::Minute, req).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get_historical_data(
         &self,
         instrument_token: u32,
